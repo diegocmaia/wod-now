@@ -7,18 +7,23 @@ import {
 } from '../contracts.js';
 
 type RouteContext = {
-  params: {
+  params:
+    | {
+        id: string;
+      }
+    | Promise<{
     id: string;
-  };
+      }>;
 };
 
 export async function GET(
   _request: Request,
   context: RouteContext
 ): Promise<Response> {
+  const params = await Promise.resolve(context.params);
   const workout = await db.workout.findFirst({
     where: {
-      id: context.params.id,
+      id: params.id,
       isPublished: true
     },
     select: workoutApiSelect

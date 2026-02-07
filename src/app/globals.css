@@ -1,0 +1,155 @@
+:root {
+  color-scheme: light;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  background: #f5f2e9;
+  color: #1f2933;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, #ffd4a8 0%, transparent 45%),
+    radial-gradient(circle at bottom left, #d2e3c8 0%, transparent 40%),
+    #f5f2e9;
+}
+
+.page {
+  display: grid;
+  gap: 1rem;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.controls,
+.result {
+  border: 1px solid #d3c8b9;
+  border-radius: 12px;
+  background: #fffdf9;
+  padding: 1rem;
+}
+
+h1,
+h2,
+h3,
+legend,
+button,
+label {
+  font-family: "Space Grotesk", "Avenir Next", sans-serif;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+.muted {
+  color: #536471;
+}
+
+.error {
+  color: #942a2a;
+}
+
+label,
+legend {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+
+select,
+button {
+  margin-bottom: 1rem;
+  width: 100%;
+  min-height: 2.5rem;
+  border-radius: 8px;
+  border: 1px solid #9eb0bd;
+  padding: 0.4rem 0.7rem;
+  font: inherit;
+}
+
+button {
+  border-color: #314f68;
+  background: #314f68;
+  color: #f7fbff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+fieldset {
+  border: 1px solid #d3c8b9;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.equipment-option {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0;
+  font-weight: 400;
+}
+
+.workout-card h2 {
+  margin: 0 0 0.5rem;
+}
+
+.workout-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.workout-card li {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.block-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.block {
+  border-top: 1px solid #e6ddcf;
+  padding-top: 0.65rem;
+}
+
+.equipment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.pill {
+  border: 1px solid #d3c8b9;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+@media (min-width: 768px) {
+  .page {
+    grid-template-columns: 320px minmax(0, 1fr);
+    align-items: start;
+  }
+}
