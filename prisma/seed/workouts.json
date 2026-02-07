@@ -9,8 +9,12 @@
         "name": "For Time",
         "duration": 480,
         "movements": [
-          { "name": "Thruster", "reps": 45, "load": "95/65 lb" },
-          { "name": "Pull-up", "reps": 45 }
+          {
+            "name": "Thruster",
+            "repScheme": [21, 15, 9],
+            "loads": { "female": "65 lb", "male": "95 lb" }
+          },
+          { "name": "Pull-up", "repScheme": [21, 15, 9] }
         ]
       }
     ],
