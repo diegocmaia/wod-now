@@ -12,5 +12,7 @@ describe('Workout Prisma model', () => {
     expect(schema).toContain('equipment      String');
     expect(schema).toContain('data           String');
     expect(schema).toContain('isPublished    Boolean @default(false)');
+    expect(schema).toContain('@@index([isPublished], map: "idx_workouts_is_published")');
+    expect(schema).toContain('@@index([id], map: "idx_workouts_id_lookup")');
   });
 });
