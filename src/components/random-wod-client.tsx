@@ -26,8 +26,8 @@ const EQUIPMENT_OPTIONS = [
 ] as const;
 
 type UiState = {
-  loading: boolean;
-  error: string | null;
+  status: 'idle' | 'loading' | 'error' | 'empty' | 'success';
+  message: string | null;
   workout: WorkoutView | null;
 };
 
@@ -55,9 +55,10 @@ const toApiErrorMessage = async (response: Response): Promise<string> => {
 export function RandomWodClient() {
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [timeCapMax, setTimeCapMax] = useState('');
+  const [excludeHistory, setExcludeHistory] = useState<string[]>([]);
   const [uiState, setUiState] = useState<UiState>({
-    loading: false,
-    error: null,
+    status: 'idle',
+    message: null,
     workout: null
   });
 
@@ -72,7 +73,7 @@ export function RandomWodClient() {
   };
 
   const fetchRandomWorkout = async () => {
-    setUiState((state) => ({ ...state, loading: true, error: null }));
+    setUiState((state) => ({ ...state, status: 'loading', message: null }));
 
     const query = new URLSearchParams();
     if (timeCapMax.length > 0) {
@@ -81,27 +82,60 @@ export function RandomWodClient() {
     if (selectedEquipment.length > 0) {
       query.set('equipment', selectedEquipment.join(','));
     }
+    if (excludeHistory.length > 0) {
+      query.set('exclude', excludeHistory.join(','));
+    }
 
     const endpoint = `/api/workouts/random${query.toString() ? `?${query}` : ''}`;
-    const response = await fetch(endpoint, { method: 'GET', cache: 'no-store' });
+    let response: Response;
+    try {
+      response = await fetch(endpoint, { method: 'GET', cache: 'no-store' });
+    } catch {
+      setUiState({
+        status: 'error',
+        message: 'Could not reach the server. Please try again.',
+        workout: null
+      });
+      return;
+    }
 
     if (!response.ok) {
       const message = await toApiErrorMessage(response);
-      setUiState({ loading: false, error: message, workout: null });
+      setUiState({
+        status: response.status === 404 ? 'empty' : 'error',
+        message,
+        workout: null
+      });
       return;
     }
 
     const payload = parseWorkoutView(await response.json());
     if (payload === null) {
       setUiState({
-        loading: false,
-        error: 'API returned an invalid workout payload',
+        status: 'error',
+        message: 'API returned an invalid workout payload',
         workout: null
       });
       return;
     }
 
-    setUiState({ loading: false, error: null, workout: payload });
+    setExcludeHistory((current) =>
+      current.includes(payload.id) ? current : [...current, payload.id]
+    );
+    setUiState({
+      status: 'success',
+      message: null,
+      workout: payload
+    });
+  };
+
+  const clearHistory = () => {
+    setExcludeHistory([]);
+    setUiState((current) => ({
+      ...current,
+      status: current.workout ? 'success' : 'idle',
+      message: null
+    }));
   };
 
   return (
@@ -144,17 +178,44 @@ export function RandomWodClient() {
           </div>
         </fieldset>
 
-        <button type="button" onClick={fetchRandomWorkout} disabled={uiState.loading}>
-          {uiState.loading ? 'Finding workout...' : 'Get random workout'}
+        <button
+          type="button"
+          onClick={fetchRandomWorkout}
+          disabled={uiState.status === 'loading'}
+          className="button-primary"
+        >
+          {uiState.status === 'loading' ? 'Finding workout...' : 'Get random workout'}
         </button>
+        <button
+          type="button"
+          onClick={clearHistory}
+          disabled={excludeHistory.length === 0}
+          className="button-secondary"
+        >
+          Reset no-repeat history
+        </button>
+        <p className="muted">
+          Excluded this session:
+          {' '}
+          {excludeHistory.length}
+        </p>
       </section>
 
       <section className="result" aria-live="polite">
-        {uiState.error ? <p className="error">{uiState.error}</p> : null}
+        {uiState.status === 'error' && uiState.message ? <p className="error">{uiState.message}</p> : null}
         {uiState.workout ? (
           <WorkoutRenderer workout={uiState.workout} />
+        ) : uiState.status === 'empty' ? (
+          <article className="workout-card">
+            <h2>No workouts left for current filters</h2>
+            <p className="muted">{uiState.message ?? 'Try broadening filters or reset no-repeat history.'}</p>
+          </article>
         ) : (
-          <p className="muted">No workout selected yet.</p>
+          <p className="muted">
+            {uiState.status === 'loading'
+              ? 'Finding workout...'
+              : 'No workout selected yet.'}
+          </p>
         )}
       </section>
     </main>
