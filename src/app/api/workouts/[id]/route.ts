@@ -1,3 +1,4 @@
+import { jsonError } from '../../../../lib/api-error.js';
 import { db } from '../../../../lib/db.js';
 
 import {
@@ -24,12 +25,12 @@ export async function GET(
   });
 
   if (!workout) {
-    return new Response(null, { status: 404 });
+    return jsonError(404, 'NOT_FOUND', 'Workout not found');
   }
 
   const response = toWorkoutResponse(workout);
   if (response === null) {
-    return Response.json({ error: 'Invalid workout payload' }, { status: 500 });
+    return jsonError(500, 'INTERNAL_ERROR', 'Stored workout payload is invalid');
   }
 
   return Response.json(response, { status: 200 });

@@ -26,6 +26,12 @@ describe('GET /api/workouts/random', () => {
     const response = await GET(new Request('https://example.com/api/workouts/random'));
 
     expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: {
+        code: 'NOT_FOUND',
+        message: 'No workout matched the provided filters'
+      }
+    });
   });
 
   it('applies timeCapMax and exclude filters to db query', async () => {
@@ -113,7 +119,10 @@ describe('GET /api/workouts/random', () => {
 
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({
-      error: 'timeCapMax must be a positive integer'
+      error: {
+        code: 'BAD_REQUEST',
+        message: 'timeCapMax must be a positive integer'
+      }
     });
   });
 });
