@@ -20,3 +20,15 @@
     - `data: unknown`
   - `404` when no workout matches filters
   - `400` when `timeCapMax` is invalid
+
+### `GET /api/workouts/[id]`
+- Path param:
+  - `id` workout id
+- Responses:
+  - `200` with published workout payload:
+    - `id: string`
+    - `title: string`
+    - `timeCapSeconds: number`
+    - `equipment: string[]`
+    - `data: unknown`
+  - `404` for missing or unpublished id
