@@ -10,12 +10,15 @@
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "typecheck": "tsc --noEmit",
-    "test": "npm run prisma:generate && vitest run && npm run typecheck"
+    "test": "npm run prisma:generate && vitest run && npm run typecheck",
+    "seed": "node --import=tsx prisma/seed.ts",
+    "db:seed": "npm run seed"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
     "playwright": "^1.58.2",
     "prisma": "^6.2.1",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   },
