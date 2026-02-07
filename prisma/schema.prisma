@@ -14,4 +14,7 @@ model Workout {
   equipment      String
   data           String
   isPublished    Boolean @default(false)
+
+  @@index([isPublished], map: "idx_workouts_is_published")
+  @@index([id], map: "idx_workouts_id_lookup")
 }
