@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 
+import { jsonError } from '../../../../lib/api-error.js';
 import { db } from '../../../../lib/db.js';
 import {
   toWorkoutResponse,
@@ -13,10 +14,6 @@ type RandomWorkoutQuery = {
   exclude: string[];
 };
 
-type ErrorResponse = {
-  error: string;
-};
-
 const parseCsvValues = (searchParams: URLSearchParams, key: string): string[] => {
   return searchParams
     .getAll(key)
@@ -25,7 +22,7 @@ const parseCsvValues = (searchParams: URLSearchParams, key: string): string[] =>
     .filter((value) => value.length > 0);
 };
 
-const parseQuery = (request: Request): RandomWorkoutQuery | ErrorResponse => {
+const parseQuery = (request: Request): RandomWorkoutQuery | { error: string } => {
   const url = new URL(request.url);
   const rawTimeCapMax = url.searchParams.get('timeCapMax');
 
@@ -67,7 +64,7 @@ const pickRandomWorkout = (workouts: WorkoutResponse[]): WorkoutResponse => {
 export async function GET(request: Request): Promise<Response> {
   const query = parseQuery(request);
   if ('error' in query) {
-    return Response.json(query, { status: 400 });
+    return jsonError(400, 'BAD_REQUEST', query.error);
   }
 
   const where: Prisma.WorkoutWhereInput = {
@@ -89,7 +86,7 @@ export async function GET(request: Request): Promise<Response> {
     .filter((workout) => matchesEquipment(workout.equipment, query.equipment));
 
   if (candidates.length === 0) {
-    return new Response(null, { status: 404 });
+    return jsonError(404, 'NOT_FOUND', 'No workout matched the provided filters');
   }
 
   return Response.json(pickRandomWorkout(candidates), { status: 200 });

@@ -1,18 +1,8 @@
 import { z } from 'zod';
 
+import { jsonError, type ApiErrorDetail } from '../../../../lib/api-error.js';
 import { db } from '../../../../lib/db.js';
 import { safeParseWorkout } from '../../../../lib/workout-schema.js';
-
-type ApiError = {
-  error: {
-    code: string;
-    message: string;
-    details?: Array<{
-      path: string;
-      message: string;
-    }>;
-  };
-};
 
 type AdminWorkoutResponse = {
   id: string;
@@ -20,26 +10,11 @@ type AdminWorkoutResponse = {
 };
 
 const unauthorized = (): Response => {
-  const body: ApiError = {
-    error: {
-      code: 'UNAUTHORIZED',
-      message: 'Missing or invalid admin API key'
-    }
-  };
-
-  return Response.json(body, { status: 401 });
+  return jsonError(401, 'UNAUTHORIZED', 'Missing or invalid admin API key');
 };
 
-const badRequest = (message: string, details?: ApiError['error']['details']): Response => {
-  const body: ApiError = {
-    error: {
-      code: 'BAD_REQUEST',
-      message,
-      ...(details && details.length > 0 ? { details } : {})
-    }
-  };
-
-  return Response.json(body, { status: 400 });
+const badRequest = (message: string, details?: ApiErrorDetail[]): Response => {
+  return jsonError(400, 'BAD_REQUEST', message, details);
 };
 
 const toPath = (path: ReadonlyArray<PropertyKey>): string => {
@@ -60,7 +35,7 @@ const toPath = (path: ReadonlyArray<PropertyKey>): string => {
     .join('.');
 };
 
-const toValidationDetails = (issues: z.ZodIssue[]): ApiError['error']['details'] => {
+const toValidationDetails = (issues: z.ZodIssue[]): ApiErrorDetail[] => {
   return issues.map((issue) => ({
     path: toPath(issue.path),
     message: issue.message

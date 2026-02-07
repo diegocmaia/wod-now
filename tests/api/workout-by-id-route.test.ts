@@ -65,5 +65,11 @@ describe('GET /api/workouts/[id]', () => {
     });
 
     expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({
+      error: {
+        code: 'NOT_FOUND',
+        message: 'Workout not found'
+      }
+    });
   });
 });
