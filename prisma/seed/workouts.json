@@ -1,0 +1,1113 @@
+[
+  {
+    "id": "v1-fran",
+    "title": "Fran",
+    "timeCapSeconds": 480,
+    "equipment": ["barbell", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 480,
+        "movements": [
+          { "name": "Thruster", "reps": 45, "load": "95/65 lb" },
+          { "name": "Pull-up", "reps": 45 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Use lighter load or ring rows." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-grace",
+    "title": "Grace",
+    "timeCapSeconds": 360,
+    "equipment": ["barbell"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 360,
+        "movements": [{ "name": "Clean and Jerk", "reps": 30, "load": "135/95 lb" }]
+      }
+    ],
+    "notes": { "scaling": "Reduce load to maintain unbroken sets." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-helen",
+    "title": "Helen",
+    "timeCapSeconds": 720,
+    "equipment": ["kettlebell", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "3 Rounds",
+        "duration": 720,
+        "movements": [
+          { "name": "Run", "distanceMeters": 400 },
+          { "name": "Kettlebell Swing", "reps": 21, "load": "24/16 kg" },
+          { "name": "Pull-up", "reps": 12 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Hold 1:1 work-rest pace in each round." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-diane",
+    "title": "Diane",
+    "timeCapSeconds": 600,
+    "equipment": ["barbell"],
+    "blocks": [
+      {
+        "name": "21-15-9",
+        "duration": 600,
+        "movements": [
+          { "name": "Deadlift", "reps": 45, "load": "225/155 lb" },
+          { "name": "Handstand Push-up", "reps": 45 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Pike push-ups or DB press for strict volume." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-jackie",
+    "title": "Jackie",
+    "timeCapSeconds": 720,
+    "equipment": ["rower", "barbell", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 720,
+        "movements": [
+          { "name": "Row", "distanceMeters": 1000 },
+          { "name": "Thruster", "reps": 50, "load": "45/35 lb" },
+          { "name": "Pull-up", "reps": 30 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Fast transition off the rower matters." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-annie",
+    "title": "Annie",
+    "timeCapSeconds": 720,
+    "equipment": ["jump rope"],
+    "blocks": [
+      {
+        "name": "50-40-30-20-10",
+        "duration": 720,
+        "movements": [
+          { "name": "Double-under", "reps": 150 },
+          { "name": "Sit-up", "reps": 150 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Singles at 2:1 reps if needed." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-karen",
+    "title": "Karen",
+    "timeCapSeconds": 600,
+    "equipment": ["wall ball"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 600,
+        "movements": [{ "name": "Wall Ball", "reps": 150, "load": "20/14 lb" }]
+      }
+    ],
+    "notes": { "coach": "Target sets of 15-20 with short breaks." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-cindy",
+    "title": "Cindy",
+    "timeCapSeconds": 1200,
+    "equipment": ["pull-up bar"],
+    "blocks": [
+      {
+        "name": "AMRAP 20",
+        "duration": 1200,
+        "movements": [
+          { "name": "Pull-up", "reps": 5 },
+          { "name": "Push-up", "reps": 10 },
+          { "name": "Air Squat", "reps": 15 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Use assisted pull-up variation to keep moving." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-elizabeth",
+    "title": "Elizabeth",
+    "timeCapSeconds": 720,
+    "equipment": ["barbell", "gymnastic rings"],
+    "blocks": [
+      {
+        "name": "21-15-9",
+        "duration": 720,
+        "movements": [
+          { "name": "Clean", "reps": 45, "load": "135/95 lb" },
+          { "name": "Ring Dip", "reps": 45 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Bar dips can replace ring dips." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-amy",
+    "title": "Amy",
+    "timeCapSeconds": 900,
+    "equipment": ["barbell", "pull-up bar", "jump rope"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Deadlift", "reps": 10, "load": "95/65 lb" },
+          { "name": "Burpee", "reps": 10 },
+          { "name": "Double-under", "reps": 40 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Unbroken rope sets are the priority." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-brian",
+    "title": "Brian",
+    "timeCapSeconds": 840,
+    "equipment": ["barbell", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Front Squat", "reps": 12, "load": "115/75 lb" },
+          { "name": "Toes-to-Bar", "reps": 12 },
+          { "name": "Push Press", "reps": 12, "load": "115/75 lb" }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Reduce front squat load to keep quick cycles." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-claire",
+    "title": "Claire",
+    "timeCapSeconds": 900,
+    "equipment": ["dumbbell", "box"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Dumbbell Snatch", "reps": 20, "load": "50/35 lb" },
+          { "name": "Box Jump Over", "reps": 20 },
+          { "name": "V-up", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Alternate arms every rep." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-delta",
+    "title": "Delta",
+    "timeCapSeconds": 780,
+    "equipment": ["echo bike", "kettlebell"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 780,
+        "movements": [
+          { "name": "Bike", "calories": 20 },
+          { "name": "Kettlebell Goblet Squat", "reps": 20, "load": "24/16 kg" },
+          { "name": "Burpee", "reps": 12 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Bike calories can be 16/12." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-eagle",
+    "title": "Eagle",
+    "timeCapSeconds": 720,
+    "equipment": ["barbell", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "3 Rounds",
+        "duration": 720,
+        "movements": [
+          { "name": "Power Clean", "reps": 12, "load": "115/75 lb" },
+          { "name": "Chest-to-Bar Pull-up", "reps": 12 },
+          { "name": "Front Rack Lunge", "reps": 24, "load": "115/75 lb" }
+        ]
+      }
+    ],
+    "notes": { "coach": "Short sets on pull-ups from round one." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-falcon",
+    "title": "Falcon",
+    "timeCapSeconds": 660,
+    "equipment": ["barbell"],
+    "blocks": [
+      {
+        "name": "Ladder",
+        "duration": 660,
+        "movements": [
+          { "name": "Hang Power Snatch", "reps": 45, "load": "75/55 lb" },
+          { "name": "Overhead Squat", "reps": 45, "load": "75/55 lb" }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Limit grip fatigue by planned drops." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-gamma",
+    "title": "Gamma",
+    "timeCapSeconds": 840,
+    "equipment": ["rower", "dumbbell"],
+    "blocks": [
+      {
+        "name": "3 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Row", "distanceMeters": 500 },
+          { "name": "Dumbbell Thruster", "reps": 20, "load": "50/35 lb" },
+          { "name": "Sit-up", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Keep row pace sustainable from first interval." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-harbor",
+    "title": "Harbor",
+    "timeCapSeconds": 900,
+    "equipment": ["sandbag", "box"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Sandbag Clean", "reps": 10, "load": "100/70 lb" },
+          { "name": "Box Step-over", "reps": 20 },
+          { "name": "Hand-release Push-up", "reps": 15 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Lower box height to maintain rhythm." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-ion",
+    "title": "Ion",
+    "timeCapSeconds": 600,
+    "equipment": ["jump rope", "kettlebell"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 600,
+        "movements": [
+          { "name": "Double-under", "reps": 120 },
+          { "name": "Kettlebell Snatch", "reps": 60, "load": "24/16 kg" }
+        ]
+      }
+    ],
+    "notes": { "coach": "Break snatches early to protect grip." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-joule",
+    "title": "Joule",
+    "timeCapSeconds": 780,
+    "equipment": ["barbell", "box"],
+    "blocks": [
+      {
+        "name": "21-15-9",
+        "duration": 780,
+        "movements": [
+          { "name": "Power Snatch", "reps": 45, "load": "95/65 lb" },
+          { "name": "Box Jump", "reps": 45 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Reduce height to keep rebound jumps." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-kite",
+    "title": "Kite",
+    "timeCapSeconds": 840,
+    "equipment": ["ski erg", "dumbbell"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Ski", "calories": 18 },
+          { "name": "Dumbbell Clean and Jerk", "reps": 16, "load": "50/35 lb" },
+          { "name": "Burpee Over Dumbbell", "reps": 16 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Move continuously through middle reps." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-luna",
+    "title": "Luna",
+    "timeCapSeconds": 900,
+    "equipment": ["rower", "barbell"],
+    "blocks": [
+      {
+        "name": "3 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Row", "distanceMeters": 750 },
+          { "name": "Bar Facing Burpee", "reps": 15 },
+          { "name": "Power Clean", "reps": 15, "load": "95/65 lb" }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Cap row pace at threshold." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-metro",
+    "title": "Metro",
+    "timeCapSeconds": 960,
+    "equipment": ["assault bike", "wall ball"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 960,
+        "movements": [
+          { "name": "Bike", "calories": 25 },
+          { "name": "Wall Ball", "reps": 25, "load": "20/14 lb" },
+          { "name": "Sit-up", "reps": 25 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Stay under redline in first two rounds." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-nova",
+    "title": "Nova",
+    "timeCapSeconds": 720,
+    "equipment": ["barbell", "jump rope"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 720,
+        "movements": [
+          { "name": "Power Snatch", "reps": 10, "load": "75/55 lb" },
+          { "name": "Double-under", "reps": 50 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Use singles at 2:1 volume if needed." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-orbit",
+    "title": "Orbit",
+    "timeCapSeconds": 840,
+    "equipment": ["dumbbell", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Dumbbell Hang Clean", "reps": 16, "load": "50/35 lb" },
+          { "name": "Toes-to-Bar", "reps": 12 },
+          { "name": "Lunge", "reps": 24 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Keep core breathing controlled on TTB." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-pulse",
+    "title": "Pulse",
+    "timeCapSeconds": 780,
+    "equipment": ["kettlebell", "jump rope"],
+    "blocks": [
+      {
+        "name": "AMRAP 13",
+        "duration": 780,
+        "movements": [
+          { "name": "Kettlebell Swing", "reps": 15, "load": "24/16 kg" },
+          { "name": "Double-under", "reps": 40 },
+          { "name": "Air Squat", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Russian swings and singles are acceptable." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-quartz",
+    "title": "Quartz",
+    "timeCapSeconds": 840,
+    "equipment": ["barbell", "rower"],
+    "blocks": [
+      {
+        "name": "3 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Row", "distanceMeters": 500 },
+          { "name": "Front Squat", "reps": 15, "load": "115/75 lb" },
+          { "name": "Push Press", "reps": 15, "load": "115/75 lb" }
+        ]
+      }
+    ],
+    "notes": { "coach": "Hold smooth front rack cycle rate." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-radar",
+    "title": "Radar",
+    "timeCapSeconds": 660,
+    "equipment": ["wall ball", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 660,
+        "movements": [
+          { "name": "Wall Ball", "reps": 80, "load": "20/14 lb" },
+          { "name": "Toes-to-Bar", "reps": 40 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Reduce total TTB to 30 if needed." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-signal",
+    "title": "Signal",
+    "timeCapSeconds": 900,
+    "equipment": ["barbell", "gymnastic rings"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Power Clean", "reps": 10, "load": "135/95 lb" },
+          { "name": "Ring Dip", "reps": 10 },
+          { "name": "Run", "distanceMeters": 200 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Cycle cleans in doubles early." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-tango",
+    "title": "Tango",
+    "timeCapSeconds": 720,
+    "equipment": ["dumbbell", "jump rope"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 720,
+        "movements": [
+          { "name": "Dumbbell Devil Press", "reps": 50, "load": "50/35 lb" },
+          { "name": "Double-under", "reps": 100 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Step back on burpee portion if needed." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-union",
+    "title": "Union",
+    "timeCapSeconds": 900,
+    "equipment": ["echo bike", "barbell"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Bike", "calories": 15 },
+          { "name": "Deadlift", "reps": 12, "load": "185/125 lb" },
+          { "name": "Handstand Push-up", "reps": 9 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Keep deadlift sets at submax effort." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-vector",
+    "title": "Vector",
+    "timeCapSeconds": 840,
+    "equipment": ["barbell", "jump rope"],
+    "blocks": [
+      {
+        "name": "12 Minute Ladder",
+        "duration": 840,
+        "movements": [
+          { "name": "Push Jerk", "reps": 60, "load": "95/65 lb" },
+          { "name": "Double-under", "reps": 180 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Singles can replace doubles for consistency." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-wildfire",
+    "title": "Wildfire",
+    "timeCapSeconds": 780,
+    "equipment": ["rower", "box"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 780,
+        "movements": [
+          { "name": "Row", "distanceMeters": 1500 },
+          { "name": "Box Jump Over", "reps": 60 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Target negative split every 500m." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-xray",
+    "title": "Xray",
+    "timeCapSeconds": 960,
+    "equipment": ["sandbag", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "EMOM 16",
+        "duration": 960,
+        "movements": [
+          { "name": "Sandbag Front Carry", "distanceMeters": 80, "load": "100/70 lb" },
+          { "name": "Pull-up", "reps": 10 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Distance can reduce to 60m each round." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-yard",
+    "title": "Yard",
+    "timeCapSeconds": 840,
+    "equipment": ["kettlebell", "wall ball"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Kettlebell Front Rack Step-up", "reps": 20, "load": "24/16 kg" },
+          { "name": "Wall Ball", "reps": 20, "load": "20/14 lb" },
+          { "name": "Sit-up", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Keep step-up cadence stable." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-zenith",
+    "title": "Zenith",
+    "timeCapSeconds": 900,
+    "equipment": ["barbell", "rower"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Row", "distanceMeters": 300 },
+          { "name": "Thruster", "reps": 12, "load": "95/65 lb" },
+          { "name": "Pull-up", "reps": 12 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Reduce thruster load if breathing spikes." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-apex",
+    "title": "Apex",
+    "timeCapSeconds": 720,
+    "equipment": ["dumbbell", "box"],
+    "blocks": [
+      {
+        "name": "AMRAP 12",
+        "duration": 720,
+        "movements": [
+          { "name": "Alternating Dumbbell Snatch", "reps": 20, "load": "50/35 lb" },
+          { "name": "Box Jump", "reps": 15 },
+          { "name": "Push-up", "reps": 15 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Keep transitions under five seconds." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-boreal",
+    "title": "Boreal",
+    "timeCapSeconds": 780,
+    "equipment": ["ski erg", "barbell"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 780,
+        "movements": [
+          { "name": "Ski", "calories": 60 },
+          { "name": "Overhead Squat", "reps": 45, "load": "95/65 lb" }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Limit overhead load for shoulder stability." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-cascade",
+    "title": "Cascade",
+    "timeCapSeconds": 840,
+    "equipment": ["kettlebell", "rower"],
+    "blocks": [
+      {
+        "name": "3 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Row", "distanceMeters": 750 },
+          { "name": "Kettlebell Deadlift", "reps": 30, "load": "32/24 kg" },
+          { "name": "V-up", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Stay tall in deadlift setup each rep." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-drift",
+    "title": "Drift",
+    "timeCapSeconds": 720,
+    "equipment": ["assault bike", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "AMRAP 12",
+        "duration": 720,
+        "movements": [
+          { "name": "Bike", "calories": 15 },
+          { "name": "Chest-to-Bar Pull-up", "reps": 10 },
+          { "name": "Burpee", "reps": 10 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Use jumping chest-to-bar on fatigue." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-ember",
+    "title": "Ember",
+    "timeCapSeconds": 900,
+    "equipment": ["barbell", "gymnastic rings"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Shoulder to Overhead", "reps": 12, "load": "115/75 lb" },
+          { "name": "Ring Row", "reps": 15 },
+          { "name": "Run", "distanceMeters": 200 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Press in small sets to keep mechanics." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-forge",
+    "title": "Forge",
+    "timeCapSeconds": 960,
+    "equipment": ["sandbag", "rower"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 960,
+        "movements": [
+          { "name": "Sandbag Bear Hug Carry", "distanceMeters": 100, "load": "100/70 lb" },
+          { "name": "Row", "calories": 15 },
+          { "name": "Lunge", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Carry distance can reduce by 20m." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-glacier",
+    "title": "Glacier",
+    "timeCapSeconds": 720,
+    "equipment": ["dumbbell", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 720,
+        "movements": [
+          { "name": "Dumbbell Hang Snatch", "reps": 60, "load": "50/35 lb" },
+          { "name": "Toes-to-Bar", "reps": 45 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Break TTB by 8-10 early." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-horizon",
+    "title": "Horizon",
+    "timeCapSeconds": 840,
+    "equipment": ["jump rope", "wall ball"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Double-under", "reps": 60 },
+          { "name": "Wall Ball", "reps": 20, "load": "20/14 lb" },
+          { "name": "Sit-up", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Switch to singles if rope miss rate rises." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-inferno",
+    "title": "Inferno",
+    "timeCapSeconds": 900,
+    "equipment": ["barbell", "echo bike"],
+    "blocks": [
+      {
+        "name": "3 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Bike", "calories": 25 },
+          { "name": "Thruster", "reps": 15, "load": "95/65 lb" },
+          { "name": "Bar Facing Burpee", "reps": 15 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Bike pace should allow quick barbell pickup." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-jet",
+    "title": "Jet",
+    "timeCapSeconds": 660,
+    "equipment": ["barbell"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 660,
+        "movements": [
+          { "name": "Power Clean", "reps": 40, "load": "155/105 lb" },
+          { "name": "Push Jerk", "reps": 40, "load": "155/105 lb" }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Drop weight to complete in 8-11 minutes." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-keystone",
+    "title": "Keystone",
+    "timeCapSeconds": 780,
+    "equipment": ["rower", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "AMRAP 13",
+        "duration": 780,
+        "movements": [
+          { "name": "Row", "distanceMeters": 250 },
+          { "name": "Pull-up", "reps": 12 },
+          { "name": "Push-up", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "coach": "No long breaks on floor reps." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-lattice",
+    "title": "Lattice",
+    "timeCapSeconds": 840,
+    "equipment": ["dumbbell", "jump rope"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Dumbbell Cluster", "reps": 16, "load": "50/35 lb" },
+          { "name": "Double-under", "reps": 40 },
+          { "name": "Burpee", "reps": 12 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Cut clusters to 12 per round if needed." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-monsoon",
+    "title": "Monsoon",
+    "timeCapSeconds": 960,
+    "equipment": ["ski erg", "wall ball"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 960,
+        "movements": [
+          { "name": "Ski", "calories": 20 },
+          { "name": "Wall Ball", "reps": 20, "load": "20/14 lb" },
+          { "name": "Lunge", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Consistent ski stroke rate beats sprint starts." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-nimbus",
+    "title": "Nimbus",
+    "timeCapSeconds": 900,
+    "equipment": ["kettlebell", "box"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 900,
+        "movements": [
+          { "name": "Kettlebell Swing", "reps": 100, "load": "24/16 kg" },
+          { "name": "Box Step-over", "reps": 80 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Lower step-over count to 60 for beginners." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-onyx",
+    "title": "Onyx",
+    "timeCapSeconds": 720,
+    "equipment": ["barbell", "gymnastic rings"],
+    "blocks": [
+      {
+        "name": "21-15-9",
+        "duration": 720,
+        "movements": [
+          { "name": "Power Snatch", "reps": 45, "load": "95/65 lb" },
+          { "name": "Ring Dip", "reps": 45 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Use box dips if ring support fails." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-pioneer",
+    "title": "Pioneer",
+    "timeCapSeconds": 900,
+    "equipment": ["sandbag", "echo bike"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Sandbag Clean", "reps": 12, "load": "100/70 lb" },
+          { "name": "Bike", "calories": 20 },
+          { "name": "Sit-up", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Avoid redline bike efforts before sandbag." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-quiver",
+    "title": "Quiver",
+    "timeCapSeconds": 780,
+    "equipment": ["barbell", "jump rope"],
+    "blocks": [
+      {
+        "name": "AMRAP 13",
+        "duration": 780,
+        "movements": [
+          { "name": "Power Clean", "reps": 8, "load": "135/95 lb" },
+          { "name": "Push Jerk", "reps": 8, "load": "135/95 lb" },
+          { "name": "Double-under", "reps": 40 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Load can be reduced to 115/75 lb." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-ridge",
+    "title": "Ridge",
+    "timeCapSeconds": 840,
+    "equipment": ["dumbbell", "rower"],
+    "blocks": [
+      {
+        "name": "3 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Row", "distanceMeters": 600 },
+          { "name": "Dumbbell Lunge", "reps": 24, "load": "50/35 lb" },
+          { "name": "Dumbbell Push Press", "reps": 18, "load": "50/35 lb" }
+        ]
+      }
+    ],
+    "notes": { "coach": "Control breathing before pressing." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-solstice",
+    "title": "Solstice",
+    "timeCapSeconds": 960,
+    "equipment": ["barbell", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 960,
+        "movements": [
+          { "name": "Deadlift", "reps": 80, "load": "155/105 lb" },
+          { "name": "Toes-to-Bar", "reps": 60 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Reduce deadlift volume to 60 reps." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-tempest",
+    "title": "Tempest",
+    "timeCapSeconds": 720,
+    "equipment": ["wall ball", "rower"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 720,
+        "movements": [
+          { "name": "Row", "distanceMeters": 1200 },
+          { "name": "Wall Ball", "reps": 60, "load": "20/14 lb" }
+        ]
+      }
+    ],
+    "notes": { "coach": "Open with controlled row pace." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-upstream",
+    "title": "Upstream",
+    "timeCapSeconds": 840,
+    "equipment": ["kettlebell", "pull-up bar"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 840,
+        "movements": [
+          { "name": "Kettlebell Clean", "reps": 16, "load": "24/16 kg" },
+          { "name": "Pull-up", "reps": 12 },
+          { "name": "Air Squat", "reps": 24 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Use strict pull-up alternative as needed." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-vertex",
+    "title": "Vertex",
+    "timeCapSeconds": 900,
+    "equipment": ["dumbbell", "ski erg"],
+    "blocks": [
+      {
+        "name": "5 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Ski", "calories": 15 },
+          { "name": "Dumbbell Thruster", "reps": 15, "load": "50/35 lb" },
+          { "name": "Sit-up", "reps": 20 }
+        ]
+      }
+    ],
+    "notes": { "coach": "Keep ski transitions immediate." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-whisper",
+    "title": "Whisper",
+    "timeCapSeconds": 780,
+    "equipment": ["jump rope", "box"],
+    "blocks": [
+      {
+        "name": "AMRAP 13",
+        "duration": 780,
+        "movements": [
+          { "name": "Double-under", "reps": 50 },
+          { "name": "Box Jump Over", "reps": 15 },
+          { "name": "Burpee", "reps": 10 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Single-unders at 2:1 are acceptable." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-yonder",
+    "title": "Yonder",
+    "timeCapSeconds": 900,
+    "equipment": ["barbell", "rower"],
+    "blocks": [
+      {
+        "name": "4 Rounds",
+        "duration": 900,
+        "movements": [
+          { "name": "Row", "distanceMeters": 400 },
+          { "name": "Push Press", "reps": 15, "load": "95/65 lb" },
+          { "name": "Front Squat", "reps": 15, "load": "95/65 lb" }
+        ]
+      }
+    ],
+    "notes": { "coach": "Stay efficient in barbell cycling." },
+    "isPublished": true
+  },
+  {
+    "id": "v1-zephyr",
+    "title": "Zephyr",
+    "timeCapSeconds": 960,
+    "equipment": ["sandbag", "jump rope"],
+    "blocks": [
+      {
+        "name": "For Time",
+        "duration": 960,
+        "movements": [
+          { "name": "Sandbag Over Shoulder", "reps": 80, "load": "100/70 lb" },
+          { "name": "Double-under", "reps": 160 }
+        ]
+      }
+    ],
+    "notes": { "scaling": "Lower sandbag to 60 reps if needed." },
+    "isPublished": true
+  }
+]
