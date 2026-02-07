@@ -50,7 +50,21 @@ export const workoutSchema = z
       .optional(),
     isPublished: z.boolean().default(false)
   })
-  .strict();
+  .strict()
+  .superRefine((workout, ctx) => {
+    const hasRemainingBlock = workout.blocks.some(
+      (block) => block.duration === 'remaining'
+    );
+
+    if (hasRemainingBlock && workout.timeCapSeconds === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['timeCapSeconds'],
+        message:
+          'timeCapSeconds is required when any block uses duration=\"remaining\"'
+      });
+    }
+  });
 
 export type WorkoutInput = z.input<typeof workoutSchema>;
 export type Workout = z.output<typeof workoutSchema>;

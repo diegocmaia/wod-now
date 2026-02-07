@@ -96,6 +96,40 @@ describe('workout schema', () => {
     expect(parsed.isPublished).toBe(false);
   });
 
+  it('requires timeCapSeconds when any block duration is remaining', () => {
+    const result = safeParseWorkout({
+      id: 'wod-003',
+      title: 'For Time',
+      equipment: ['dumbbell'],
+      blocks: [
+        {
+          name: 'Main Piece',
+          duration: 'remaining',
+          movements: [
+            {
+              name: 'DB Snatch',
+              reps: 30
+            }
+          ]
+        }
+      ],
+      isPublished: false
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            path: ['timeCapSeconds'],
+            message:
+              'timeCapSeconds is required when any block uses duration="remaining"'
+          })
+        ])
+      );
+    }
+  });
+
   it('rejects invalid top-level payloads', () => {
     const result = safeParseWorkout({
       id: '',
