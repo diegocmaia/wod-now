@@ -2,37 +2,61 @@ import { z } from 'zod';
 
 const nonEmptyString = z.string().trim().min(1, 'Must not be empty');
 
+const movementLoadsSchema = z
+  .object({
+    female: nonEmptyString.optional(),
+    male: nonEmptyString.optional()
+  })
+  .strict()
+  .refine((loads) => loads.female !== undefined || loads.male !== undefined, {
+    message: 'loads must define at least one of female or male',
+    path: ['female']
+  });
+
 export const workoutMovementSchema = z
   .object({
     name: nonEmptyString,
     reps: z.number().int().positive().optional(),
+    repScheme: z.array(z.number().int().positive()).min(1).optional(),
     calories: z.number().int().positive().optional(),
     distanceMeters: z.number().int().positive().optional(),
     load: nonEmptyString.optional(),
+    loads: movementLoadsSchema.optional(),
     notes: nonEmptyString.optional()
   })
-  .strict()
-  .refine(
-    (movement) =>
-      movement.reps !== undefined ||
-      movement.calories !== undefined ||
-      movement.distanceMeters !== undefined ||
-      movement.load !== undefined,
-    {
-      message:
-        'Movement must define at least one of reps, calories, distanceMeters, or load',
-      path: ['reps']
-    }
-  );
+  .strict();
 
 export const workoutBlockSchema = z
   .object({
     name: nonEmptyString,
     duration: z.union([z.number().int().positive(), z.literal('remaining')]).optional(),
+    repScheme: z.array(z.number().int().positive()).min(1).optional(),
     movements: z.array(workoutMovementSchema).min(1, 'Block must include at least one movement'),
     notes: nonEmptyString.optional()
   })
-  .strict();
+  .strict()
+  .superRefine((block, ctx) => {
+    const hasRepScheme = block.repScheme !== undefined;
+
+    block.movements.forEach((movement, index) => {
+      const hasMovementPrescription =
+        movement.reps !== undefined ||
+        movement.repScheme !== undefined ||
+        movement.calories !== undefined ||
+        movement.distanceMeters !== undefined ||
+        movement.load !== undefined ||
+        movement.loads !== undefined;
+
+      if (!hasRepScheme && !hasMovementPrescription) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['movements', index, 'reps'],
+          message:
+            'Movement must define at least one of reps, repScheme, calories, distanceMeters, load, loads, or block repScheme'
+        });
+      }
+    });
+  });
 
 export const workoutSchema = z
   .object({

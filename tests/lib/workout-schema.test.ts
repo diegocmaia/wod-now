@@ -37,12 +37,17 @@ const validWorkout = {
 };
 
 describe('workout movement schema', () => {
-  it('rejects movements without a measurable prescription', () => {
+  it('accepts movement-level repScheme and structured loads', () => {
     const result = workoutMovementSchema.safeParse({
-      name: 'Run'
+      name: 'Thruster',
+      repScheme: [21, 15, 9],
+      loads: {
+        female: '65 lb',
+        male: '95 lb'
+      }
     });
 
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 });
 
@@ -60,6 +65,25 @@ describe('workout block schema', () => {
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it('accepts block-level repScheme as fallback prescription', () => {
+    const result = workoutBlockSchema.safeParse({
+      name: 'For Time',
+      repScheme: [21, 15, 9],
+      movements: [{ name: 'Pull-up' }]
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects movement without prescription when no repScheme exists at block level', () => {
+    const result = workoutBlockSchema.safeParse({
+      name: 'For Time',
+      movements: [{ name: 'Pull-up' }]
+    });
+
+    expect(result.success).toBe(false);
   });
 });
 

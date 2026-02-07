@@ -1,15 +1,21 @@
 type WorkoutMovement = {
   name: string;
   reps?: number;
+  repScheme?: number[];
   calories?: number;
   distanceMeters?: number;
   load?: string;
+  loads?: {
+    female?: string;
+    male?: string;
+  };
   notes?: string;
 };
 
 export type WorkoutBlock = {
   name: string;
   duration?: number | 'remaining';
+  repScheme?: number[];
   movements: WorkoutMovement[];
   notes?: string;
 };
@@ -36,6 +42,14 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 };
 
+const isPositiveIntArray = (value: unknown): value is number[] => {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value.every((item) => typeof item === 'number' && Number.isInteger(item) && item > 0)
+  );
+};
+
 const isMovement = (value: unknown): value is WorkoutMovement => {
   if (!isRecord(value) || typeof value.name !== 'string' || value.name.trim().length === 0) {
     return false;
@@ -57,6 +71,26 @@ const isMovement = (value: unknown): value is WorkoutMovement => {
     }
   }
 
+  if (value.repScheme !== undefined && !isPositiveIntArray(value.repScheme)) {
+    return false;
+  }
+
+  if (value.loads !== undefined) {
+    if (!isRecord(value.loads)) {
+      return false;
+    }
+    const { female, male } = value.loads;
+    if (female !== undefined && typeof female !== 'string') {
+      return false;
+    }
+    if (male !== undefined && typeof male !== 'string') {
+      return false;
+    }
+    if (female === undefined && male === undefined) {
+      return false;
+    }
+  }
+
   return true;
 };
 
@@ -71,6 +105,10 @@ const isBlock = (value: unknown): value is WorkoutBlock => {
     duration !== 'remaining' &&
     (typeof duration !== 'number' || !Number.isInteger(duration) || duration <= 0)
   ) {
+    return false;
+  }
+
+  if (value.repScheme !== undefined && !isPositiveIntArray(value.repScheme)) {
     return false;
   }
 

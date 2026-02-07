@@ -16,6 +16,9 @@ const formatMovementDetails = (blockMovement: WorkoutBlock['movements'][number])
   if (blockMovement.reps !== undefined) {
     details.push(`${blockMovement.reps} reps`);
   }
+  if (blockMovement.repScheme !== undefined) {
+    details.push(blockMovement.repScheme.join('-'));
+  }
   if (blockMovement.calories !== undefined) {
     details.push(`${blockMovement.calories} cal`);
   }
@@ -24,6 +27,12 @@ const formatMovementDetails = (blockMovement: WorkoutBlock['movements'][number])
   }
   if (blockMovement.load) {
     details.push(blockMovement.load);
+  }
+  if (blockMovement.loads?.female) {
+    details.push(`♀ ${blockMovement.loads.female}`);
+  }
+  if (blockMovement.loads?.male) {
+    details.push(`♂ ${blockMovement.loads.male}`);
   }
 
   return details.join(' • ');
@@ -60,7 +69,10 @@ export function WorkoutRenderer({ workout }: WorkoutRendererProps) {
         {workout.data.blocks.map((block, blockIndex) => (
           <section key={`${workout.id}-${block.name}-${blockIndex}`} className="block">
             <h3>{block.name}</h3>
-            <p className="muted">{formatDuration(block.duration)}</p>
+            <p className="muted">
+              {formatDuration(block.duration)}
+              {block.repScheme ? ` • ${block.repScheme.join('-')}` : ''}
+            </p>
             <ul>
               {block.movements.map((movement, movementIndex) => (
                 <li key={`${movement.name}-${movementIndex}`}>
