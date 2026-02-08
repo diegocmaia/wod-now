@@ -40,7 +40,7 @@ export default async function WorkoutByIdPage({ params }: WorkoutPageProps) {
         <h1>Shared WOD</h1>
         <p className="muted">Shareable workout page rendered on the server.</p>
         <p>
-          <a href="/">Back to random WOD</a>
+          <a href="/" className="link-back">Back to random WOD</a>
         </p>
       </section>
 
