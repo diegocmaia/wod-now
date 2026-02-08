@@ -30,7 +30,7 @@ describe('GET /api/workouts/[id]', () => {
     });
 
     const response = await GET(new Request('https://example.com/api/workouts/w1'), {
-      params: { id: 'w1' }
+      params: Promise.resolve({ id: 'w1' })
     });
 
     expect(response.status).toBe(200);
@@ -61,7 +61,7 @@ describe('GET /api/workouts/[id]', () => {
     findFirst.mockResolvedValue(null);
 
     const response = await GET(new Request('https://example.com/api/workouts/missing'), {
-      params: { id: 'missing' }
+      params: Promise.resolve({ id: 'missing' })
     });
 
     expect(response.status).toBe(404);
