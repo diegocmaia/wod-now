@@ -45,9 +45,9 @@ type WorkoutRendererProps = {
 export function WorkoutRenderer({ workout }: WorkoutRendererProps) {
   return (
     <article className="workout-card">
-      <header>
+      <header className="workout-header">
         <h2>{workout.title}</h2>
-        <p className="muted">
+        <p className="muted workout-meta">
           {Math.floor(workout.timeCapSeconds / 60)} min cap
           {' • '}
           {workout.id}
@@ -69,15 +69,15 @@ export function WorkoutRenderer({ workout }: WorkoutRendererProps) {
         {workout.data.blocks.map((block, blockIndex) => (
           <section key={`${workout.id}-${block.name}-${blockIndex}`} className="block">
             <h3>{block.name}</h3>
-            <p className="muted">
+            <p className="muted block-meta">
               {formatDuration(block.duration)}
               {block.repScheme ? ` • ${block.repScheme.join('-')}` : ''}
             </p>
             <ul>
               {block.movements.map((movement, movementIndex) => (
                 <li key={`${movement.name}-${movementIndex}`}>
-                  <span>{movement.name}</span>
-                  <span className="muted">{formatMovementDetails(movement)}</span>
+                  <span className="movement-name">{movement.name}</span>
+                  <span className="muted movement-details">{formatMovementDetails(movement)}</span>
                   {movement.notes ? <em>{movement.notes}</em> : null}
                 </li>
               ))}

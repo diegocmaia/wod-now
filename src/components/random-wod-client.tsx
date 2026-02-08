@@ -178,23 +178,25 @@ export function RandomWodClient() {
           </div>
         </fieldset>
 
-        <button
-          type="button"
-          onClick={fetchRandomWorkout}
-          disabled={uiState.status === 'loading'}
-          className="button-primary"
-        >
-          {uiState.status === 'loading' ? 'Finding workout...' : 'Get random workout'}
-        </button>
-        <button
-          type="button"
-          onClick={clearHistory}
-          disabled={excludeHistory.length === 0}
-          className="button-secondary"
-        >
-          Reset no-repeat history
-        </button>
-        <p className="muted">
+        <div className="controls-actions">
+          <button
+            type="button"
+            onClick={fetchRandomWorkout}
+            disabled={uiState.status === 'loading'}
+            className="button-primary"
+          >
+            {uiState.status === 'loading' ? 'Finding workout...' : 'Get random workout'}
+          </button>
+          <button
+            type="button"
+            onClick={clearHistory}
+            disabled={excludeHistory.length === 0}
+            className="button-secondary"
+          >
+            Reset no-repeat history
+          </button>
+        </div>
+        <p className="muted session-meta">
           Excluded this session:
           {' '}
           {excludeHistory.length}
