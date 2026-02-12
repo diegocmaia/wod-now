@@ -6,6 +6,9 @@ Create a `.env` file in the repo root.
 - `DATABASE_URL`:
   - Local default: `file:./dev.db`
   - Used by Prisma for API reads/writes and seeding.
+- `DIRECT_URL`:
+  - Optional for local SQLite usage.
+  - Required for Postgres migrations in production (`postgresql://...` non-pooled/direct URL).
 - `ADMIN_API_KEY`:
   - Required by `POST /api/admin/workouts` via `x-admin-key` header.
   - Example: `ADMIN_API_KEY="replace-with-long-random-secret"`
@@ -14,8 +17,14 @@ Reference example:
 
 ```env
 DATABASE_URL="file:./dev.db"
+DIRECT_URL=""
 ADMIN_API_KEY="replace-with-long-random-secret"
 ```
+
+For Vercel Postgres production setup:
+- Set `DATABASE_URL` from Vercel `POSTGRES_PRISMA_URL` (pooled).
+- Set `DIRECT_URL` from Vercel `POSTGRES_URL_NON_POOLING` (direct/non-pooled).
+- Store production secrets in Vercel Environment Variables only.
 
 ## Local Database Setup
 1. Copy `.env.example` to `.env`.
@@ -45,6 +54,7 @@ Run these after deployment (or locally with `npm run dev`).
 
 ## Deployment Checklist
 Use the V1 release runbook in `/Users/dmaia/development/repos/wod-now/docs/v1-deploy-checklist.md`.
+Provider selection decision for Phase 2 is documented in `/Users/dmaia/development/repos/wod-now/docs/phase-2-postgres-provider-decision.md`.
 
 ## API Contracts
 ### Error response contract (all endpoints)
