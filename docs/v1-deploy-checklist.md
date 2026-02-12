@@ -4,6 +4,7 @@
 - Confirm CI is green for the release commit (`npm test`).
 - Confirm `.env` includes:
   - `DATABASE_URL`
+  - `DIRECT_URL` (required when running Prisma migrations against Postgres)
   - `ADMIN_API_KEY`
 - Confirm seed dataset exists at `/Users/dmaia/development/repos/wod-now/prisma/seed/workouts.json`.
 
