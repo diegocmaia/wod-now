@@ -14,6 +14,10 @@ Create a `.env` file in the repo root.
   - This aligns with the Vercel Aurora tutorial flow after `vercel env pull`.
 - `PGPASSWORD`:
   - Optional override. If set, wrapper scripts use it instead of generating IAM tokens.
+- `RANDOM_WOD_CACHE_TTL_SECONDS`:
+  - Optional cache TTL for `GET /api/workouts/random` responses (default `30`).
+- `RANDOM_WOD_CACHE_MAX_KEYS`:
+  - Optional max in-memory cache keys for random endpoint filter combinations (default `200`).
 - `ADMIN_API_KEY`:
   - Required by `POST /api/admin/workouts` via `x-admin-key` header.
   - Example: `ADMIN_API_KEY="replace-with-long-random-secret"`
