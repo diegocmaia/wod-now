@@ -7,8 +7,8 @@ Prepare `wod-now` for a successful and repeatable production deployment on Verce
 1. Production build fails due to an invalid Next.js route handler signature:
    - `src/app/api/workouts/[id]/route.ts`
 2. Verify runtime env mapping for Vercel-managed AWS Postgres:
-   - `DATABASE_URL` -> pooled/runtime URL from Vercel Postgres integration
-   - `DIRECT_URL` -> direct/non-pooled URL from Vercel Postgres integration
+   - URL flow: `DATABASE_URL` + `DIRECT_URL`
+   - IAM tutorial flow: `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGSSLMODE`, `AWS_REGION`
 3. `ADMIN_API_KEY` is required by `POST /api/admin/workouts` and must be configured in Vercel environments.
 
 ## Phase 1: Build and typecheck fix (required before deploy)
