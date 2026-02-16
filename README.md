@@ -4,13 +4,16 @@
 Create a `.env` file in the repo root.
 
 - `DATABASE_URL`:
-  - Required pooled/runtime Postgres connection string.
-  - On Vercel-managed AWS Postgres, map from the pooled URL env provided by Vercel (commonly `POSTGRES_PRISMA_URL`).
-  - Used by Prisma for API reads/writes and seeding.
+  - Optional when using `PG*` + IAM token flow.
+  - If set, used directly by Prisma for API reads/writes and seeding.
 - `DIRECT_URL`:
-  - Required direct/non-pooled Postgres connection string.
-  - On Vercel-managed AWS Postgres, map from the direct/non-pooled URL env provided by Vercel (commonly `POSTGRES_URL_NON_POOLING`).
-  - Used for migrations (`prisma migrate deploy`).
+  - Optional when using `PG*` + IAM token flow.
+  - If set, used for migrations (`prisma migrate deploy`).
+- `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGSSLMODE`, `AWS_REGION`:
+  - Used by IAM wrapper scripts to generate short-lived Postgres auth tokens and build Prisma URLs.
+  - This aligns with the Vercel Aurora tutorial flow after `vercel env pull`.
+- `PGPASSWORD`:
+  - Optional override. If set, wrapper scripts use it instead of generating IAM tokens.
 - `ADMIN_API_KEY`:
   - Required by `POST /api/admin/workouts` via `x-admin-key` header.
   - Example: `ADMIN_API_KEY="replace-with-long-random-secret"`
@@ -18,25 +21,36 @@ Create a `.env` file in the repo root.
 Reference example:
 
 ```env
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB?sslmode=require&pgbouncer=true&connect_timeout=15"
-DIRECT_URL="postgresql://USER:PASSWORD@HOST:5432/DB?sslmode=require&connect_timeout=15"
+DATABASE_URL=""
+DIRECT_URL=""
+PGHOST=""
+PGPORT="5432"
+PGUSER=""
+PGDATABASE="postgres"
+PGSSLMODE="require"
+AWS_REGION=""
 ADMIN_API_KEY="replace-with-long-random-secret"
 ```
 
 For Vercel-managed AWS Postgres setup:
-- Set `DATABASE_URL` from the pooled URL variable exposed by your Vercel Postgres integration.
-- Set `DIRECT_URL` from the direct/non-pooled URL variable exposed by your Vercel Postgres integration.
+- Run `vercel env pull` to load `PG*` and `AWS*` variables locally.
+- Use IAM scripts that generate temporary Prisma URLs automatically:
+  - `npm run db:migrate:deploy:iam`
+  - `npm run db:seed:iam`
 - Store production secrets in Vercel Environment Variables only.
 
 ## Local Database Setup
 1. Copy `.env.example` to `.env`.
 2. Run `npm install`.
 3. Set `.env` values:
-   - `DATABASE_URL` -> pooled/runtime URL from Vercel Postgres integration
-   - `DIRECT_URL` -> non-pooled/direct URL from Vercel Postgres integration
+   - Either set `DATABASE_URL` + `DIRECT_URL`, or set `PGHOST`/`PGPORT`/`PGUSER`/`PGDATABASE`/`AWS_REGION`
    - `ADMIN_API_KEY` -> random secret used by admin ingestion route
-4. Run `npm run db:migrate:deploy`.
-5. Run `npm run seed` to validate and upsert curated workouts.
+4. Run migrations:
+   - URL flow: `npm run db:migrate:deploy`
+   - IAM flow: `npm run db:migrate:deploy:iam`
+5. Run seed:
+   - URL flow: `npm run seed`
+   - IAM flow: `npm run db:seed:iam`
 6. Verify inserted records:
    - `node -e "const {PrismaClient}=require('@prisma/client');(async()=>{const p=new PrismaClient();console.log('total='+await p.workout.count()+' published='+await p.workout.count({where:{isPublished:true}}));await p.$disconnect();})();"`
 

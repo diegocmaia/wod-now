@@ -3,14 +3,25 @@
 ## 1. Pre-deploy
 - Confirm CI is green for the release commit (`npm test`).
 - Confirm `.env` includes:
-  - `DATABASE_URL` (pooled/runtime URL from your Vercel Postgres integration)
-  - `DIRECT_URL` (direct/non-pooled URL from your Vercel Postgres integration)
+  - Either URL-based config:
+    - `DATABASE_URL`
+    - `DIRECT_URL`
+  - Or IAM/tutorial config:
+    - `PGHOST`
+    - `PGPORT`
+    - `PGUSER`
+    - `PGDATABASE`
+    - `AWS_REGION`
   - `ADMIN_API_KEY`
 - Confirm seed dataset exists at `/Users/dmaia/development/repos/wod-now/prisma/seed/workouts.json`.
 
 ## 2. Database and seed
-- Run `npm run db:migrate:deploy`.
-- Run `npm run seed`.
+- Run migrations:
+  - URL flow: `npm run db:migrate:deploy`
+  - IAM flow (Aurora tutorial): `npm run db:migrate:deploy:iam`
+- Run seed:
+  - URL flow: `npm run seed`
+  - IAM flow (Aurora tutorial): `npm run db:seed:iam`
 - Validate inserted records:
   - `node -e "const {PrismaClient}=require('@prisma/client');(async()=>{const p=new PrismaClient();console.log('total='+await p.workout.count()+' published='+await p.workout.count({where:{isPublished:true}}));await p.$disconnect();})();"`
 - Expected result: `total>=50` and `published==total`.
