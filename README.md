@@ -4,11 +4,13 @@
 Create a `.env` file in the repo root.
 
 - `DATABASE_URL`:
-  - Local default: `file:./dev.db`
+  - Required pooled/runtime Postgres connection string.
+  - On Vercel-managed AWS Postgres, map from the pooled URL env provided by Vercel (commonly `POSTGRES_PRISMA_URL`).
   - Used by Prisma for API reads/writes and seeding.
 - `DIRECT_URL`:
-  - Optional for local SQLite usage.
-  - Required for Postgres migrations in production (`postgresql://...` non-pooled/direct URL).
+  - Required direct/non-pooled Postgres connection string.
+  - On Vercel-managed AWS Postgres, map from the direct/non-pooled URL env provided by Vercel (commonly `POSTGRES_URL_NON_POOLING`).
+  - Used for migrations (`prisma migrate deploy`).
 - `ADMIN_API_KEY`:
   - Required by `POST /api/admin/workouts` via `x-admin-key` header.
   - Example: `ADMIN_API_KEY="replace-with-long-random-secret"`
@@ -16,24 +18,27 @@ Create a `.env` file in the repo root.
 Reference example:
 
 ```env
-DATABASE_URL="file:./dev.db"
-DIRECT_URL=""
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DB?sslmode=require&pgbouncer=true&connect_timeout=15"
+DIRECT_URL="postgresql://USER:PASSWORD@HOST:5432/DB?sslmode=require&connect_timeout=15"
 ADMIN_API_KEY="replace-with-long-random-secret"
 ```
 
-For Vercel Postgres production setup:
-- Set `DATABASE_URL` from Vercel `POSTGRES_PRISMA_URL` (pooled).
-- Set `DIRECT_URL` from Vercel `POSTGRES_URL_NON_POOLING` (direct/non-pooled).
+For Vercel-managed AWS Postgres setup:
+- Set `DATABASE_URL` from the pooled URL variable exposed by your Vercel Postgres integration.
+- Set `DIRECT_URL` from the direct/non-pooled URL variable exposed by your Vercel Postgres integration.
 - Store production secrets in Vercel Environment Variables only.
 
 ## Local Database Setup
 1. Copy `.env.example` to `.env`.
 2. Run `npm install`.
-3. Run `npm run db:push` to sync the local Prisma schema.
-4. Run `npm run seed` to validate and upsert curated workouts.
-5. Verify query plans for V1 filters:
-   - `EXPLAIN QUERY PLAN SELECT * FROM "Workout" WHERE "isPublished" = 1`
-   - `EXPLAIN QUERY PLAN SELECT * FROM "Workout" WHERE "id" = 'workout_1'`
+3. Set `.env` values:
+   - `DATABASE_URL` -> pooled/runtime URL from Vercel Postgres integration
+   - `DIRECT_URL` -> non-pooled/direct URL from Vercel Postgres integration
+   - `ADMIN_API_KEY` -> random secret used by admin ingestion route
+4. Run `npm run db:migrate:deploy`.
+5. Run `npm run seed` to validate and upsert curated workouts.
+6. Verify inserted records:
+   - `node -e "const {PrismaClient}=require('@prisma/client');(async()=>{const p=new PrismaClient();console.log('total='+await p.workout.count()+' published='+await p.workout.count({where:{isPublished:true}}));await p.$disconnect();})();"`
 
 ## V1 Smoke Tests
 Run these after deployment (or locally with `npm run dev`).
@@ -55,6 +60,7 @@ Run these after deployment (or locally with `npm run dev`).
 ## Deployment Checklist
 Use the V1 release runbook in `/Users/dmaia/development/repos/wod-now/docs/v1-deploy-checklist.md`.
 Provider selection decision for Phase 2 is documented in `/Users/dmaia/development/repos/wod-now/docs/phase-2-postgres-provider-decision.md`.
+Phase 2 validation evidence checklist is in `/Users/dmaia/development/repos/wod-now/docs/phase-2-managed-postgres-validation.md`.
 
 ## API Contracts
 ### Error response contract (all endpoints)

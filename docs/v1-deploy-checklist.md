@@ -3,13 +3,13 @@
 ## 1. Pre-deploy
 - Confirm CI is green for the release commit (`npm test`).
 - Confirm `.env` includes:
-  - `DATABASE_URL`
-  - `DIRECT_URL` (required when running Prisma migrations against Postgres)
+  - `DATABASE_URL` (pooled/runtime URL from your Vercel Postgres integration)
+  - `DIRECT_URL` (direct/non-pooled URL from your Vercel Postgres integration)
   - `ADMIN_API_KEY`
 - Confirm seed dataset exists at `/Users/dmaia/development/repos/wod-now/prisma/seed/workouts.json`.
 
 ## 2. Database and seed
-- Run `npm run db:push`.
+- Run `npm run db:migrate:deploy`.
 - Run `npm run seed`.
 - Validate inserted records:
   - `node -e "const {PrismaClient}=require('@prisma/client');(async()=>{const p=new PrismaClient();console.log('total='+await p.workout.count()+' published='+await p.workout.count({where:{isPublished:true}}));await p.$disconnect();})();"`
