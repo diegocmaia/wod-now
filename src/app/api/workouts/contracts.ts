@@ -1,17 +1,15 @@
-import { Prisma } from '@prisma/client';
+import type { WorkoutRecord } from '../../../lib/db.js';
 
-export const workoutApiSelect = Prisma.validator<Prisma.WorkoutSelect>()({
+export const workoutApiSelect = {
   id: true,
   title: true,
   timeCapSeconds: true,
   equipment: true,
   data: true,
   isPublished: true
-});
+} as const;
 
-export type WorkoutApiRecord = Prisma.WorkoutGetPayload<{
-  select: typeof workoutApiSelect;
-}>;
+export type WorkoutApiRecord = WorkoutRecord;
 
 export type WorkoutResponse = {
   id: string;

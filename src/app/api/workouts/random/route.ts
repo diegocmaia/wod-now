@@ -1,5 +1,3 @@
-import { Prisma } from '@prisma/client';
-
 import { jsonError } from '../../../../lib/api-error.js';
 import { db } from '../../../../lib/db.js';
 import {
@@ -67,7 +65,7 @@ export async function GET(request: Request): Promise<Response> {
     return jsonError(400, 'BAD_REQUEST', query.error);
   }
 
-  const where: Prisma.WorkoutWhereInput = {
+  const where = {
     isPublished: true,
     ...(query.timeCapMax !== undefined
       ? { timeCapSeconds: { lte: query.timeCapMax } }

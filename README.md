@@ -4,13 +4,13 @@
 Create a `.env` file in the repo root.
 
 - `DATABASE_URL`:
-  - Optional when using `PG*` + IAM token flow.
-  - If set, used directly by Prisma for API reads/writes and seeding.
+  - Optional for URL-based Prisma workflows (migrations/seed scripts).
+  - Runtime API handlers do not require it when using IAM `PG*` configuration.
 - `DIRECT_URL`:
-  - Optional when using `PG*` + IAM token flow.
-  - If set, used for migrations (`prisma migrate deploy`).
+  - Optional for Prisma migration workflows (`prisma migrate deploy`).
 - `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGSSLMODE`, `AWS_REGION`:
-  - Used by IAM wrapper scripts to generate short-lived Postgres auth tokens and build Prisma URLs.
+  - Used by IAM wrapper scripts to generate short-lived Postgres auth tokens and build Prisma URLs for migrations/seed.
+  - Also used by runtime API handlers (`pg` + IAM signer) to query Aurora without static DB URLs.
   - This aligns with the Vercel Aurora tutorial flow after `vercel env pull`.
 - `PGPASSWORD`:
   - Optional override. If set, wrapper scripts use it instead of generating IAM tokens.
