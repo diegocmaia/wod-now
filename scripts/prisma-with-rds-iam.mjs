@@ -5,7 +5,7 @@ import process from 'node:process';
 
 import { Signer } from '@aws-sdk/rds-signer';
 
-const requiredPgVars = ['PGHOST', 'PGPORT', 'PGUSER'];
+const requiredPgVars = ['PGHOST', 'PGPORT', 'PGUSER', 'PGDATABASE'];
 
 const stripWrappingQuotes = (value) => {
   if (
@@ -57,7 +57,7 @@ const buildConnectionUrl = (password) => {
   const pass = encodeURIComponent(password);
   const host = process.env.PGHOST;
   const port = process.env.PGPORT;
-  const database = encodeURIComponent(process.env.PGDATABASE || 'postgres');
+  const database = encodeURIComponent(process.env.PGDATABASE);
   const sslMode = process.env.PGSSLMODE || 'require';
 
   return `postgresql://${user}:${pass}@${host}:${port}/${database}?sslmode=${sslMode}&connect_timeout=15`;
@@ -94,17 +94,10 @@ const main = async () => {
     throw new Error('Usage: node scripts/prisma-with-rds-iam.mjs <command> [args...]');
   }
 
-  const existingDatabaseUrl = process.env.DATABASE_URL;
-  const existingDirectUrl = process.env.DIRECT_URL;
-  if (existingDatabaseUrl && existingDirectUrl) {
-    const exitCode = await runCommand(command, args, process.env);
-    process.exit(exitCode);
-  }
-
   const missingPg = getMissingVars(requiredPgVars);
   if (missingPg.length > 0) {
     throw new Error(
-      `Missing required env var(s): ${missingPg.join(', ')}. Set DATABASE_URL/DIRECT_URL or PGHOST/PGPORT/PGUSER first.`
+      `Missing required env var(s): ${missingPg.join(', ')}. For IAM flow, set PGHOST/PGPORT/PGUSER/PGDATABASE first.`
     );
   }
 
