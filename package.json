@@ -33,7 +33,9 @@
     "@prisma/client": "^6.2.1",
     "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
+    "@vercel/functions": "^3.4.2",
     "next": "^15.5.12",
+    "pg": "^8.18.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "zod": "^4.3.6"
