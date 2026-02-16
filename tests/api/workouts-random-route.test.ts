@@ -1,27 +1,29 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-const { findMany } = vi.hoisted(() => ({
-  findMany: vi.fn()
+const { findRandom } = vi.hoisted(() => ({
+  findRandom: vi.fn()
 }));
 
 vi.mock('../../src/lib/db.js', () => ({
   db: {
     workout: {
-      findMany
+      findRandom
     }
   }
 }));
 
 import { GET } from '../../src/app/api/workouts/random/route.js';
+import { clearRandomWorkoutCache } from '../../src/lib/random-workout-cache.js';
 
 afterEach(() => {
   vi.restoreAllMocks();
-  findMany.mockReset();
+  findRandom.mockReset();
+  clearRandomWorkoutCache();
 });
 
 describe('GET /api/workouts/random', () => {
   it('returns 404 when no candidate workout exists', async () => {
-    findMany.mockResolvedValue([]);
+    findRandom.mockResolvedValue(null);
 
     const response = await GET(new Request('https://example.com/api/workouts/random'));
 
@@ -35,23 +37,21 @@ describe('GET /api/workouts/random', () => {
   });
 
   it('applies timeCapMax and exclude filters to db query', async () => {
-    findMany.mockResolvedValue([
-      {
-        id: 'w2',
-        title: 'Helen',
-        timeCapSeconds: 540,
-        equipment: JSON.stringify(['barbell']),
-        data: JSON.stringify({ reps: 1 }),
-        isPublished: true
-      }
-    ]);
+    findRandom.mockResolvedValue({
+      id: 'w2',
+      title: 'Helen',
+      timeCapSeconds: 540,
+      equipment: JSON.stringify(['barbell']),
+      data: JSON.stringify({ reps: 1 }),
+      isPublished: true
+    });
 
     const response = await GET(
       new Request('https://example.com/api/workouts/random?timeCapMax=600&exclude=w1,w3')
     );
 
     expect(response.status).toBe(200);
-    expect(findMany).toHaveBeenCalledWith({
+    expect(findRandom).toHaveBeenCalledWith({
       where: {
         isPublished: true,
         timeCapSeconds: { lte: 600 },
@@ -68,35 +68,15 @@ describe('GET /api/workouts/random', () => {
     });
   });
 
-  it('applies equipment subset filtering and random selection', async () => {
-    vi.spyOn(Math, 'random').mockReturnValue(0.9);
-
-    findMany.mockResolvedValue([
-      {
-        id: 'w1',
-        title: 'No Pull-Up Bar',
-        timeCapSeconds: 500,
-        equipment: JSON.stringify(['barbell']),
-        data: JSON.stringify({}),
-        isPublished: true
-      },
-      {
-        id: 'w2',
-        title: 'Fran',
-        timeCapSeconds: 480,
-        equipment: JSON.stringify(['barbell', 'pull-up bar']),
-        data: JSON.stringify({ rounds: [21, 15, 9] }),
-        isPublished: true
-      },
-      {
-        id: 'w3',
-        title: 'DT',
-        timeCapSeconds: 720,
-        equipment: JSON.stringify(['barbell', 'pull-up bar']),
-        data: JSON.stringify({ rounds: [12, 9, 6] }),
-        isPublished: true
-      }
-    ]);
+  it('pushes equipment filtering to db random query', async () => {
+    findRandom.mockResolvedValue({
+      id: 'w3',
+      title: 'DT',
+      timeCapSeconds: 720,
+      equipment: JSON.stringify(['barbell', 'pull-up bar']),
+      data: JSON.stringify({ rounds: [12, 9, 6] }),
+      isPublished: true
+    });
 
     const response = await GET(
       new Request('https://example.com/api/workouts/random?equipment=barbell,pull-up%20bar')
@@ -110,6 +90,42 @@ describe('GET /api/workouts/random', () => {
       equipment: ['barbell', 'pull-up bar'],
       data: { rounds: [12, 9, 6] }
     });
+    expect(findRandom).toHaveBeenCalledWith({
+      where: {
+        isPublished: true,
+        equipmentAll: ['barbell', 'pull-up bar']
+      },
+      select: {
+        id: true,
+        title: true,
+        timeCapSeconds: true,
+        equipment: true,
+        data: true,
+        isPublished: true
+      }
+    });
+  });
+
+  it('returns cached value without additional db query for equivalent filter keys', async () => {
+    findRandom.mockResolvedValue({
+      id: 'w-cache',
+      title: 'Cache Hit',
+      timeCapSeconds: 300,
+      equipment: JSON.stringify(['barbell']),
+      data: JSON.stringify({ rounds: [5] }),
+      isPublished: true
+    });
+
+    const first = await GET(
+      new Request('https://example.com/api/workouts/random?equipment=barbell,pull-up%20bar&exclude=w2,w1')
+    );
+    const second = await GET(
+      new Request('https://example.com/api/workouts/random?exclude=w1,w2&equipment=pull-up%20bar,barbell')
+    );
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(findRandom).toHaveBeenCalledTimes(1);
   });
 
   it('returns 400 for invalid timeCapMax', async () => {

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { jsonError, type ApiErrorDetail } from '../../../../lib/api-error.js';
 import { db } from '../../../../lib/db.js';
+import { clearRandomWorkoutCache } from '../../../../lib/random-workout-cache.js';
 import { safeParseWorkout } from '../../../../lib/workout-schema.js';
 
 type AdminWorkoutResponse = {
@@ -105,5 +106,6 @@ export async function POST(request: Request): Promise<Response> {
     isPublished: persisted.isPublished
   };
 
+  clearRandomWorkoutCache();
   return Response.json(response, { status: 200 });
 }

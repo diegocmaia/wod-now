@@ -20,6 +20,10 @@ type WorkoutWhereInput = {
   timeCapSeconds?: { lte: number };
 };
 
+type WorkoutRandomWhereInput = WorkoutWhereInput & {
+  equipmentAll?: string[];
+};
+
 type WorkoutFindManyArgs = {
   where?: WorkoutWhereInput;
   select?: WorkoutSelect;
@@ -27,6 +31,11 @@ type WorkoutFindManyArgs = {
 
 type WorkoutFindFirstArgs = {
   where?: WorkoutWhereInput;
+  select?: WorkoutSelect;
+};
+
+type WorkoutFindRandomArgs = {
+  where?: WorkoutRandomWhereInput;
   select?: WorkoutSelect;
 };
 
@@ -45,6 +54,7 @@ type DbClient = {
   workout: {
     findMany: (args: WorkoutFindManyArgs) => Promise<WorkoutRecord[]>;
     findFirst: (args: WorkoutFindFirstArgs) => Promise<WorkoutRecord | null>;
+    findRandom: (args: WorkoutFindRandomArgs) => Promise<WorkoutRecord | null>;
     count: (args: WorkoutCountArgs) => Promise<number>;
     upsert: (args: WorkoutUpsertArgs) => Promise<WorkoutRecord>;
   };
@@ -220,6 +230,33 @@ const createDbClient = (): DbClient => ({
       const whereQuery = buildWhereSql(where);
       const sql = `SELECT ${columnSql(columns)} FROM "Workout" ${whereQuery.clause} LIMIT 1`;
       const result = await getPool().query(sql, whereQuery.values);
+      return (result.rows[0] as WorkoutRecord | undefined) ?? null;
+    },
+    findRandom: async ({ where, select }: WorkoutFindRandomArgs): Promise<WorkoutRecord | null> => {
+      const columns = resolveSelect(select);
+      const whereQuery = buildWhereSql(where);
+
+      let clause = whereQuery.clause;
+      const values = [...whereQuery.values];
+      if (where?.equipmentAll && where.equipmentAll.length > 0) {
+        const param = `$${values.length + 1}`;
+        const equipmentClause = `
+          NOT EXISTS (
+            SELECT 1
+            FROM unnest(${param}::text[]) AS required_item(value)
+            WHERE NOT EXISTS (
+              SELECT 1
+              FROM jsonb_array_elements_text("equipment"::jsonb) AS workout_item(value)
+              WHERE lower(workout_item.value) = lower(required_item.value)
+            )
+          )
+        `;
+        clause = clause ? `${clause} AND ${equipmentClause}` : `WHERE ${equipmentClause}`;
+        values.push(where.equipmentAll);
+      }
+
+      const sql = `SELECT ${columnSql(columns)} FROM "Workout" ${clause} ORDER BY random() LIMIT 1`;
+      const result = await getPool().query(sql, values);
       return (result.rows[0] as WorkoutRecord | undefined) ?? null;
     },
     count: async ({ where }: WorkoutCountArgs): Promise<number> => {

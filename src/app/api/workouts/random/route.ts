@@ -1,6 +1,10 @@
 import { jsonError } from '../../../../lib/api-error.js';
 import { db } from '../../../../lib/db.js';
 import {
+  getRandomWorkoutCache,
+  setRandomWorkoutCache
+} from '../../../../lib/random-workout-cache.js';
+import {
   toWorkoutResponse,
   workoutApiSelect,
   type WorkoutResponse
@@ -43,20 +47,16 @@ const parseQuery = (request: Request): RandomWorkoutQuery | { error: string } =>
   };
 };
 
-const matchesEquipment = (workoutEquipment: string[], requiredEquipment: string[]): boolean => {
-  if (requiredEquipment.length === 0) {
-    return true;
-  }
-
-  const workoutSet = new Set(workoutEquipment.map((item) => item.toLowerCase()));
-  return requiredEquipment.every((requiredItem) =>
-    workoutSet.has(requiredItem.toLowerCase())
-  );
+const normalizeFilterValues = (values: string[]): string[] => {
+  return [...new Set(values.map((value) => value.trim()).filter((value) => value.length > 0))].sort();
 };
 
-const pickRandomWorkout = (workouts: WorkoutResponse[]): WorkoutResponse => {
-  const index = Math.floor(Math.random() * workouts.length);
-  return workouts[index];
+const toCacheKey = (query: RandomWorkoutQuery): string => {
+  return JSON.stringify({
+    timeCapMax: query.timeCapMax ?? null,
+    equipment: normalizeFilterValues(query.equipment.map((value) => value.toLowerCase())),
+    exclude: normalizeFilterValues(query.exclude)
+  });
 };
 
 export async function GET(request: Request): Promise<Response> {
@@ -65,27 +65,35 @@ export async function GET(request: Request): Promise<Response> {
     return jsonError(400, 'BAD_REQUEST', query.error);
   }
 
+  const cacheKey = toCacheKey(query);
+  const cached = getRandomWorkoutCache<WorkoutResponse>(cacheKey);
+  if (cached) {
+    return Response.json(cached, { status: 200 });
+  }
+
   const where = {
     isPublished: true,
     ...(query.timeCapMax !== undefined
       ? { timeCapSeconds: { lte: query.timeCapMax } }
       : {}),
-    ...(query.exclude.length > 0 ? { id: { notIn: query.exclude } } : {})
+    ...(query.exclude.length > 0 ? { id: { notIn: query.exclude } } : {}),
+    ...(query.equipment.length > 0 ? { equipmentAll: query.equipment } : {})
   };
 
-  const workouts = await db.workout.findMany({
+  const workout = await db.workout.findRandom({
     where,
     select: workoutApiSelect
   });
 
-  const candidates = workouts
-    .map(toWorkoutResponse)
-    .filter((workout): workout is WorkoutResponse => workout !== null)
-    .filter((workout) => matchesEquipment(workout.equipment, query.equipment));
-
-  if (candidates.length === 0) {
+  if (!workout) {
     return jsonError(404, 'NOT_FOUND', 'No workout matched the provided filters');
   }
 
-  return Response.json(pickRandomWorkout(candidates), { status: 200 });
+  const response = toWorkoutResponse(workout);
+  if (response === null) {
+    return jsonError(500, 'INTERNAL_ERROR', 'Stored workout payload is invalid');
+  }
+
+  setRandomWorkoutCache(cacheKey, response);
+  return Response.json(response, { status: 200 });
 }
