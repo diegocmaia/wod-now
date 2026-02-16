@@ -2,19 +2,28 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const getDbModule = async () => import('../../src/lib/db.js');
 
-const clearGlobalPrisma = () => {
-  const globalForPrisma = globalThis as typeof globalThis & { prisma: unknown };
-  globalForPrisma.prisma = undefined;
+const clearGlobalDb = () => {
+  const globalForDb = globalThis as typeof globalThis & {
+    db: unknown;
+    dbPool: { end?: () => Promise<void> } | undefined;
+  };
+
+  globalForDb.db = undefined;
+
+  if (globalForDb.dbPool?.end) {
+    void globalForDb.dbPool.end();
+  }
+  globalForDb.dbPool = undefined;
 };
 
 afterEach(() => {
   const mutableEnv = process.env as Record<string, string | undefined>;
-  clearGlobalPrisma();
+  clearGlobalDb();
   vi.resetModules();
   mutableEnv.NODE_ENV = undefined;
 });
 
-describe('Prisma client singleton', () => {
+describe('DB client singleton', () => {
   it('reuses a single client across reloads in development', async () => {
     const mutableEnv = process.env as Record<string, string | undefined>;
     mutableEnv.NODE_ENV = 'development';
