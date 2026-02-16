@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const { upsert } = vi.hoisted(() => ({
   upsert: vi.fn()
 }));
+const { clearRandomWorkoutCache } = vi.hoisted(() => ({
+  clearRandomWorkoutCache: vi.fn()
+}));
 
 vi.mock('../../src/lib/db.js', () => ({
   db: {
@@ -10,6 +13,9 @@ vi.mock('../../src/lib/db.js', () => ({
       upsert
     }
   }
+}));
+vi.mock('../../src/lib/random-workout-cache.js', () => ({
+  clearRandomWorkoutCache
 }));
 
 import { POST } from '../../src/app/api/admin/workouts/route.js';
@@ -29,6 +35,7 @@ describe('POST /api/admin/workouts', () => {
     }
 
     upsert.mockReset();
+    clearRandomWorkoutCache.mockReset();
   });
 
   it('returns 401 when x-admin-key is missing', async () => {
@@ -208,5 +215,6 @@ describe('POST /api/admin/workouts', () => {
         isPublished: true
       }
     });
+    expect(clearRandomWorkoutCache).toHaveBeenCalledTimes(1);
   });
 });
