@@ -1,9 +1,43 @@
 import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import process from 'node:process';
 
 import { Signer } from '@aws-sdk/rds-signer';
 
 const requiredPgVars = ['PGHOST', 'PGPORT', 'PGUSER'];
+
+const stripWrappingQuotes = (value) => {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    return value.slice(1, -1);
+  }
+
+  return value;
+};
+
+const loadEnvFile = (filePath) => {
+  try {
+    const file = readFileSync(filePath, 'utf8');
+    for (const rawLine of file.split('\n')) {
+      const line = rawLine.trim();
+      if (!line || line.startsWith('#')) continue;
+
+      const separator = line.indexOf('=');
+      if (separator <= 0) continue;
+
+      const key = line.slice(0, separator).trim();
+      if (!key || process.env[key] !== undefined) continue;
+
+      const rawValue = line.slice(separator + 1).trim();
+      process.env[key] = stripWrappingQuotes(rawValue);
+    }
+  } catch {
+    // Ignore missing env files.
+  }
+};
 
 const runCommand = (command, args, env) =>
   new Promise((resolve, reject) => {
@@ -52,6 +86,9 @@ const getPassword = async () => {
 };
 
 const main = async () => {
+  loadEnvFile(path.resolve(process.cwd(), '.env.local'));
+  loadEnvFile(path.resolve(process.cwd(), '.env'));
+
   const [command, ...args] = process.argv.slice(2);
   if (!command) {
     throw new Error('Usage: node scripts/prisma-with-rds-iam.mjs <command> [args...]');
