@@ -1,32 +1,5 @@
-import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
-import { PrismaClient } from '@prisma/client';
-import { afterAll, describe, expect, it } from 'vitest';
-
-const executeSqlScript = async (prisma: PrismaClient, scriptPath: string) => {
-  const sql = readFileSync(scriptPath, 'utf8');
-
-  for (const statement of sql.split(';')) {
-    const trimmed = statement.trim();
-    if (!trimmed) continue;
-    await prisma.$executeRawUnsafe(`${trimmed};`);
-  }
-};
-
-const dbPath = join('/tmp', `wod-now-index-${randomUUID()}.db`);
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: `file:${dbPath}`
-    }
-  }
-});
-
-afterAll(async () => {
-  await prisma.$disconnect();
-});
+import { describe, expect, it } from 'vitest';
 
 describe('Workout indexes', () => {
   it('includes index migration for isPublished and id', () => {
@@ -39,26 +12,22 @@ describe('Workout indexes', () => {
     expect(migrationSql).toContain('idx_workouts_id_lookup');
   });
 
-  it('uses indexes in query plans for published and id filters', async () => {
-    await executeSqlScript(
-      prisma,
-      'prisma/migrations/20260207131500_init_workout/migration.sql'
+  it('defines Postgres-compatible table and index SQL', () => {
+    const initSql = readFileSync(
+      'prisma/migrations/20260207131500_init_workout/migration.sql',
+      'utf8'
     );
-    await executeSqlScript(
-      prisma,
-      'prisma/migrations/20260207133000_add_workout_indexes/migration.sql'
+    const indexSql = readFileSync(
+      'prisma/migrations/20260207133000_add_workout_indexes/migration.sql',
+      'utf8'
     );
 
-    const publishedPlan = (await prisma.$queryRawUnsafe(
-      'EXPLAIN QUERY PLAN SELECT * FROM "Workout" WHERE "isPublished" = 1'
-    )) as Array<{ detail: string }>;
-
-    const idPlan = (await prisma.$queryRawUnsafe(
-      'EXPLAIN QUERY PLAN SELECT * FROM "Workout" WHERE "id" = ?1',
-      'workout_1'
-    )) as Array<{ detail: string }>;
-
-    expect(publishedPlan.some((row) => row.detail.includes('idx_workouts_is_published'))).toBe(true);
-    expect(idPlan.some((row) => row.detail.includes('INDEX'))).toBe(true);
+    expect(initSql).toContain('CREATE TABLE "Workout"');
+    expect(initSql).toContain('"id" TEXT NOT NULL PRIMARY KEY');
+    expect(initSql).toContain('"isPublished" BOOLEAN NOT NULL DEFAULT false');
+    expect(indexSql).toContain(
+      'CREATE INDEX "idx_workouts_is_published" ON "Workout"("isPublished")'
+    );
+    expect(indexSql).toContain('CREATE INDEX "idx_workouts_id_lookup" ON "Workout"("id")');
   });
 });

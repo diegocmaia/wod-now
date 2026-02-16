@@ -4,6 +4,12 @@ import { describe, expect, it } from 'vitest';
 const schema = readFileSync('prisma/schema.prisma', 'utf8');
 
 describe('Workout Prisma model', () => {
+  it('uses PostgreSQL datasource configuration', () => {
+    expect(schema).toContain('provider = "postgresql"');
+    expect(schema).toContain('url      = env("DATABASE_URL")');
+    expect(schema).toContain('directUrl = env("DIRECT_URL")');
+  });
+
   it('includes all required fields', () => {
     expect(schema).toContain('model Workout');
     expect(schema).toContain('id             String  @id @default(cuid())');

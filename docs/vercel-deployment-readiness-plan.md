@@ -6,7 +6,9 @@ Prepare `wod-now` for a successful and repeatable production deployment on Verce
 ## Current blockers
 1. Production build fails due to an invalid Next.js route handler signature:
    - `src/app/api/workouts/[id]/route.ts`
-2. Database is currently SQLite file-based (`DATABASE_URL="file:./dev.db"`), which is not a durable production data setup on Vercel.
+2. Verify runtime env mapping for Vercel-managed AWS Postgres:
+   - `DATABASE_URL` -> pooled/runtime URL from Vercel Postgres integration
+   - `DIRECT_URL` -> direct/non-pooled URL from Vercel Postgres integration
 3. `ADMIN_API_KEY` is required by `POST /api/admin/workouts` and must be configured in Vercel environments.
 
 ## Phase 1: Build and typecheck fix (required before deploy)
@@ -40,10 +42,10 @@ Prepare `wod-now` for a successful and repeatable production deployment on Verce
    - Store secrets only in Vercel Environment Variables (Preview/Production scoped as needed).
    - Do not commit live values to `.env`, `.env.example`, or repository docs.
    - Rotate `ADMIN_API_KEY` and database credentials on suspected exposure.
-8. Follow-up implementation:
-   - Update Prisma datasource provider from `sqlite` to `postgresql` in `prisma/schema.prisma`.
-   - Create and run Prisma migrations for Postgres.
-   - Update seed/verification workflow for remote database usage.
+8. Implementation checkpoints:
+   - Prisma datasource provider is `postgresql` in `prisma/schema.prisma`.
+   - Postgres-compatible migrations are committed and applied via `prisma migrate deploy`.
+   - Seed preflight validates schema availability for managed Postgres usage.
 9. Validate:
    - Seed completes against managed DB
    - `/api/workouts/random` returns 200 with seeded data

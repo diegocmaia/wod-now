@@ -16,6 +16,8 @@ type PersistedWorkout = {
   isPublished: true;
 };
 
+type SupportedDatabaseEngine = 'sqlite' | 'postgresql' | 'unknown';
+
 const defaultDatasetPath = path.resolve(process.cwd(), 'prisma/seed/workouts.json');
 
 const formatIssuePath = (pathSegments: ReadonlyArray<PropertyKey>): string => {
@@ -95,6 +97,70 @@ export const loadDataset = async (datasetPath = defaultDatasetPath): Promise<Wor
   return validateDataset(parsed);
 };
 
+const detectDatabaseEngine = (databaseUrl: string | undefined): SupportedDatabaseEngine => {
+  if (!databaseUrl) {
+    return 'unknown';
+  }
+
+  if (databaseUrl.startsWith('file:')) {
+    return 'sqlite';
+  }
+
+  if (
+    databaseUrl.startsWith('postgresql://') ||
+    databaseUrl.startsWith('postgres://')
+  ) {
+    return 'postgresql';
+  }
+
+  return 'unknown';
+};
+
+const verifyDatabaseConnection = async (
+  prisma: PrismaClient,
+  logger: Logger
+): Promise<void> => {
+  const engine = detectDatabaseEngine(process.env.DATABASE_URL);
+  logger.info(`[seed] detected database engine=${engine}`);
+
+  if (engine === 'sqlite') {
+    const databases = (await prisma.$queryRawUnsafe(
+      'PRAGMA database_list;'
+    )) as Array<{ file?: string | null }>;
+    const sqliteFile = databases.find((db) => db.file && db.file.length > 0)?.file ?? 'unknown';
+    logger.info(`[seed] connected sqlite file=${sqliteFile}`);
+
+    const workoutTable = (await prisma.$queryRawUnsafe(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='Workout';"
+    )) as Array<{ name: string }>;
+    if (workoutTable.length === 0) {
+      throw new Error('Workout table not found. Run `npm run db:migrate:deploy` before seeding.');
+    }
+
+    return;
+  }
+
+  if (engine === 'postgresql') {
+    const target = (await prisma.$queryRawUnsafe(
+      'SELECT current_database() AS database, current_schema() AS schema;'
+    )) as Array<{ database: string; schema: string }>;
+    const database = target[0]?.database ?? 'unknown';
+    const schema = target[0]?.schema ?? 'unknown';
+    logger.info(`[seed] connected postgres database=${database} schema=${schema}`);
+
+    const workoutTable = (await prisma.$queryRawUnsafe(
+      `SELECT to_regclass('"Workout"') AS workout_table;`
+    )) as Array<{ workout_table: string | null }>;
+    if (!workoutTable[0]?.workout_table) {
+      throw new Error('Workout table not found. Run `npm run db:migrate:deploy` before seeding.');
+    }
+
+    return;
+  }
+
+  logger.info('[seed] unable to infer database engine from DATABASE_URL; skipping table preflight');
+};
+
 export const seedWorkouts = async (
   prisma: PrismaClient,
   workouts: Workout[],
@@ -143,18 +209,7 @@ export const runSeed = async (logger: Logger = console): Promise<void> => {
   const prisma = new PrismaClient();
 
   try {
-    const databases = (await prisma.$queryRawUnsafe(
-      'PRAGMA database_list;'
-    )) as Array<{ file?: string | null }>;
-    const sqliteFile = databases.find((db) => db.file && db.file.length > 0)?.file ?? 'unknown';
-    logger.info(`[seed] connected database file=${sqliteFile}`);
-
-    const workoutTable = (await prisma.$queryRawUnsafe(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name='Workout';"
-    )) as Array<{ name: string }>;
-    if (workoutTable.length === 0) {
-      throw new Error('Workout table not found. Run `npm run db:push` before seeding.');
-    }
+    await verifyDatabaseConnection(prisma, logger);
 
     logger.info(`[seed] loading dataset from ${defaultDatasetPath}`);
     const workouts = await loadDataset(defaultDatasetPath);
