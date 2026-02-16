@@ -149,7 +149,7 @@ const verifyDatabaseConnection = async (
     logger.info(`[seed] connected postgres database=${database} schema=${schema}`);
 
     const workoutTable = (await prisma.$queryRawUnsafe(
-      `SELECT to_regclass('"Workout"') AS workout_table;`
+      `SELECT to_regclass('"Workout"')::text AS workout_table;`
     )) as Array<{ workout_table: string | null }>;
     if (!workoutTable[0]?.workout_table) {
       throw new Error('Workout table not found. Run `npm run db:migrate:deploy` before seeding.');
