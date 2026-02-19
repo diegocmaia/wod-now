@@ -2,16 +2,16 @@ type AnalyticsPrimitive = string | number | boolean;
 
 export type AnalyticsEventProps = Record<string, AnalyticsPrimitive>;
 
-type PlausibleFunction = (
-  eventName: string,
-  options?: {
-    props?: AnalyticsEventProps;
-  }
+type GtagFunction = (
+  command: 'js' | 'config' | 'event',
+  target: Date | string,
+  options?: Record<string, unknown>
 ) => void;
 
 declare global {
   interface Window {
-    plausible?: PlausibleFunction;
+    dataLayer?: unknown[];
+    gtag?: GtagFunction;
   }
 }
 
@@ -36,13 +36,11 @@ const analyticsEnabledByDefault = process.env.NODE_ENV === 'production';
 const analyticsEnabled =
   envIsTruthy(process.env.NEXT_PUBLIC_ANALYTICS_ENABLED) ?? analyticsEnabledByDefault;
 
-const analyticsProvider = (process.env.NEXT_PUBLIC_ANALYTICS_PROVIDER ?? 'plausible').toLowerCase();
-const plausibleDomain = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN ?? 'wod-now.com';
+const gaMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? '';
 
 export const analyticsConfig = {
   enabled: analyticsEnabled,
-  provider: analyticsProvider,
-  plausibleDomain
+  gaMeasurementId
 } as const;
 
 const normalizeProps = (props: AnalyticsEventProps): AnalyticsEventProps => {
@@ -61,14 +59,14 @@ export const trackAnalyticsEvent = (
   eventName: string,
   props?: AnalyticsEventProps
 ): void => {
-  if (!analyticsConfig.enabled || analyticsConfig.provider !== 'plausible') {
+  if (!analyticsConfig.enabled || analyticsConfig.gaMeasurementId.length === 0) {
     return;
   }
 
-  if (typeof window === 'undefined' || typeof window.plausible !== 'function') {
+  if (typeof window === 'undefined' || typeof window.gtag !== 'function') {
     return;
   }
 
   const normalizedProps = props ? normalizeProps(props) : undefined;
-  window.plausible(eventName, normalizedProps ? { props: normalizedProps } : undefined);
+  window.gtag('event', eventName, normalizedProps);
 };

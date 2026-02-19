@@ -11,13 +11,12 @@ Create a `.env` file in the repo root.
 - `NEXT_PUBLIC_SITE_URL`:
   - Optional but recommended canonical site origin used for metadata, `robots.txt`, and `sitemap.xml`.
   - Example: `NEXT_PUBLIC_SITE_URL="https://wod-now.com"`
-- `NEXT_PUBLIC_ANALYTICS_PROVIDER`:
-  - Optional analytics provider selector (default `plausible`).
-- `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`:
-  - Optional analytics domain for Plausible (default `wod-now.com`).
 - `NEXT_PUBLIC_ANALYTICS_ENABLED`:
   - Optional analytics override (`true`/`false`).
   - By default analytics is enabled in production and disabled locally.
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID`:
+  - GA4 measurement ID used by frontend analytics (example: `G-XXXXXXXXXX`).
+  - Required for analytics event/pageview collection.
 - `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGSSLMODE`, `AWS_REGION`:
   - Used by IAM wrapper scripts to generate short-lived Postgres auth tokens and build Prisma URLs for migrations/seed.
   - Also used by runtime API handlers (`pg` + IAM signer) to query Aurora without static DB URLs.
@@ -57,8 +56,7 @@ DATABASE_URL=""
 DIRECT_URL=""
 NEXT_PUBLIC_SITE_URL=""
 NEXT_PUBLIC_ANALYTICS_ENABLED=""
-NEXT_PUBLIC_ANALYTICS_PROVIDER="plausible"
-NEXT_PUBLIC_PLAUSIBLE_DOMAIN="wod-now.com"
+NEXT_PUBLIC_GA_MEASUREMENT_ID=""
 PGHOST=""
 PGPORT="5432"
 PGUSER=""

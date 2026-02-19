@@ -7,8 +7,8 @@ const requiredHeaders = {
       "default-src 'self'",
       "frame-ancestors 'none'",
       "object-src 'none'",
-      "script-src 'self' 'unsafe-inline'",
-      "connect-src 'self'"
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+      "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com"
     ]),
   'strict-transport-security': (value) => hasAll(value, ['max-age=63072000', 'includeSubDomains']),
   'x-content-type-options': (value) => value.toLowerCase() === 'nosniff',
