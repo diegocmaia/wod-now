@@ -25,6 +25,12 @@ body {
   color: var(--text);
 }
 
+.site-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 h1,
 h2,
 h3,
@@ -46,6 +52,18 @@ a {
   padding: 2.4rem 1rem 3rem;
   display: grid;
   gap: 1rem;
+  flex: 1;
+}
+
+.site-footer {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  padding: 0 1rem 2.4rem;
+}
+
+.site-footer p {
+  margin: 0;
+  font-size: 0.92rem;
 }
 
 .controls,
@@ -252,6 +270,30 @@ button:disabled {
 
 .link-back {
   font-weight: 600;
+}
+
+.legal {
+  width: min(860px, 100%);
+  margin: 0 auto;
+  padding: 2.4rem 1rem 3rem;
+}
+
+.legal h1 {
+  margin-bottom: 0.8rem;
+}
+
+.legal h2 {
+  margin: 1.6rem 0 0.55rem;
+}
+
+.legal p,
+.legal li {
+  line-height: 1.6;
+}
+
+.legal ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.2rem;
 }
 
 code {
