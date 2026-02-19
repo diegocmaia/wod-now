@@ -22,6 +22,28 @@ type RandomWorkoutQuery = {
   exclude: string[];
 };
 
+const parsePositiveInt = (rawValue: string | undefined, fallback: number): number => {
+  if (!rawValue) {
+    return fallback;
+  }
+
+  const value = Number(rawValue);
+  if (!Number.isInteger(value) || value <= 0) {
+    return fallback;
+  }
+
+  return value;
+};
+
+const randomWorkoutEdgeCacheTtlSeconds = parsePositiveInt(
+  process.env.RANDOM_WOD_EDGE_CACHE_TTL_SECONDS,
+  30
+);
+const randomWorkoutEdgeCacheSwrSeconds = parsePositiveInt(
+  process.env.RANDOM_WOD_EDGE_CACHE_SWR_SECONDS,
+  120
+);
+
 const parseCsvValues = (searchParams: URLSearchParams, key: string): string[] => {
   return searchParams
     .getAll(key)
@@ -65,6 +87,23 @@ const toCacheKey = (query: RandomWorkoutQuery): string => {
   });
 };
 
+const shouldUseMemoryCache = (query: RandomWorkoutQuery): boolean => query.exclude.length === 0;
+
+const withCacheHeaders = (response: Response, query: RandomWorkoutQuery): Response => {
+  const headers = new Headers(response.headers);
+  const cacheControl =
+    query.exclude.length > 0
+      ? 'private, no-store'
+      : `public, s-maxage=${randomWorkoutEdgeCacheTtlSeconds}, stale-while-revalidate=${randomWorkoutEdgeCacheSwrSeconds}`;
+  headers.set('Cache-Control', cacheControl);
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+};
+
 export async function GET(request: Request): Promise<Response> {
   const protection = enforcePublicApiProtections(request);
   if ('response' in protection) {
@@ -77,11 +116,14 @@ export async function GET(request: Request): Promise<Response> {
     return applyRateLimitHeaders(response, protection.rateLimitHeaders);
   }
 
+  const useMemoryCache = shouldUseMemoryCache(query);
   const cacheKey = toCacheKey(query);
-  const cached = getRandomWorkoutCache<WorkoutResponse>(cacheKey);
-  if (cached) {
-    const response = Response.json(cached, { status: 200 });
-    return applyRateLimitHeaders(response, protection.rateLimitHeaders);
+  if (useMemoryCache) {
+    const cached = getRandomWorkoutCache<WorkoutResponse>(cacheKey);
+    if (cached) {
+      const response = withCacheHeaders(Response.json(cached, { status: 200 }), query);
+      return applyRateLimitHeaders(response, protection.rateLimitHeaders);
+    }
   }
 
   const where = {
@@ -117,7 +159,10 @@ export async function GET(request: Request): Promise<Response> {
     return applyRateLimitHeaders(invalidResponse, protection.rateLimitHeaders);
   }
 
-  setRandomWorkoutCache(cacheKey, response);
-  const okResponse = Response.json(response, { status: 200 });
+  if (useMemoryCache) {
+    setRandomWorkoutCache(cacheKey, response);
+  }
+
+  const okResponse = withCacheHeaders(Response.json(response, { status: 200 }), query);
   return applyRateLimitHeaders(okResponse, protection.rateLimitHeaders);
 }

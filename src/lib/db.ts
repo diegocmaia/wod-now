@@ -144,6 +144,34 @@ const buildWhereSql = (
   };
 };
 
+const applyEquipmentAllFilter = (
+  clause: string,
+  values: unknown[],
+  equipmentAll?: string[]
+): { clause: string; values: unknown[] } => {
+  if (!equipmentAll || equipmentAll.length === 0) {
+    return { clause, values };
+  }
+
+  const param = `$${values.length + 1}`;
+  const equipmentClause = `
+    NOT EXISTS (
+      SELECT 1
+      FROM unnest(${param}::text[]) AS required_item(value)
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements_text("equipment"::jsonb) AS workout_item(value)
+        WHERE lower(workout_item.value) = lower(required_item.value)
+      )
+    )
+  `;
+
+  return {
+    clause: clause ? `${clause} AND ${equipmentClause}` : `WHERE ${equipmentClause}`,
+    values: [...values, equipmentAll]
+  };
+};
+
 const createIamPasswordResolver = () => {
   const region = requiredEnv('AWS_REGION');
   const signer = new Signer({
@@ -235,28 +263,23 @@ const createDbClient = (): DbClient => ({
     findRandom: async ({ where, select }: WorkoutFindRandomArgs): Promise<WorkoutRecord | null> => {
       const columns = resolveSelect(select);
       const whereQuery = buildWhereSql(where);
+      const randomWhere = applyEquipmentAllFilter(
+        whereQuery.clause,
+        [...whereQuery.values],
+        where?.equipmentAll
+      );
 
-      let clause = whereQuery.clause;
-      const values = [...whereQuery.values];
-      if (where?.equipmentAll && where.equipmentAll.length > 0) {
-        const param = `$${values.length + 1}`;
-        const equipmentClause = `
-          NOT EXISTS (
-            SELECT 1
-            FROM unnest(${param}::text[]) AS required_item(value)
-            WHERE NOT EXISTS (
-              SELECT 1
-              FROM jsonb_array_elements_text("equipment"::jsonb) AS workout_item(value)
-              WHERE lower(workout_item.value) = lower(required_item.value)
-            )
-          )
-        `;
-        clause = clause ? `${clause} AND ${equipmentClause}` : `WHERE ${equipmentClause}`;
-        values.push(where.equipmentAll);
+      const countSql = `SELECT COUNT(*)::int AS count FROM "Workout" ${randomWhere.clause}`;
+      const countResult = await getPool().query<{ count: number }>(countSql, randomWhere.values);
+      const count = countResult.rows[0]?.count ?? 0;
+      if (count === 0) {
+        return null;
       }
 
-      const sql = `SELECT ${columnSql(columns)} FROM "Workout" ${clause} ORDER BY random() LIMIT 1`;
-      const result = await getPool().query(sql, values);
+      const randomOffset = Math.floor(Math.random() * count);
+      const offsetParam = `$${randomWhere.values.length + 1}`;
+      const sql = `SELECT ${columnSql(columns)} FROM "Workout" ${randomWhere.clause} ORDER BY "id" OFFSET ${offsetParam} LIMIT 1`;
+      const result = await getPool().query(sql, [...randomWhere.values, randomOffset]);
       return (result.rows[0] as WorkoutRecord | undefined) ?? null;
     },
     count: async ({ where }: WorkoutCountArgs): Promise<number> => {

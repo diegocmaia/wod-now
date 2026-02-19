@@ -27,6 +27,10 @@ Create a `.env` file in the repo root.
   - Optional cache TTL for `GET /api/workouts/random` responses (default `30`).
 - `RANDOM_WOD_CACHE_MAX_KEYS`:
   - Optional max in-memory cache keys for random endpoint filter combinations (default `200`).
+- `RANDOM_WOD_EDGE_CACHE_TTL_SECONDS`:
+  - Optional CDN/shared-cache TTL for cacheable random endpoint responses (default `30`).
+- `RANDOM_WOD_EDGE_CACHE_SWR_SECONDS`:
+  - Optional stale-while-revalidate window for cacheable random endpoint responses (default `120`).
 - `ADMIN_API_KEY`:
   - Required by `POST /api/admin/workouts` via `x-admin-key` header.
   - Example: `ADMIN_API_KEY="replace-with-long-random-secret"`
@@ -111,6 +115,7 @@ Provider selection decision for Phase 2 is documented in `/Users/dmaia/developme
 Phase 2 validation evidence checklist is in `/Users/dmaia/development/repos/wod-now/docs/phase-2-managed-postgres-validation.md`.
 Security header policy and CSP exceptions are documented in `/Users/dmaia/development/repos/wod-now/docs/security-headers.md`.
 Analytics provider setup and event taxonomy are documented in `/Users/dmaia/development/repos/wod-now/docs/analytics.md`.
+Random workout query scaling and benchmark guidance are documented in `/Users/dmaia/development/repos/wod-now/docs/random-workout-query-scaling.md`.
 
 ## API Contracts
 ### Error response contract (all endpoints)

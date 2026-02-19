@@ -119,15 +119,38 @@ describe('GET /api/workouts/random', () => {
     });
 
     const first = await GET(
-      new Request('https://example.com/api/workouts/random?equipment=barbell,pull-up%20bar&exclude=w2,w1')
+      new Request('https://example.com/api/workouts/random?equipment=barbell,pull-up%20bar')
     );
     const second = await GET(
-      new Request('https://example.com/api/workouts/random?exclude=w1,w2&equipment=pull-up%20bar,barbell')
+      new Request('https://example.com/api/workouts/random?equipment=pull-up%20bar,barbell')
     );
 
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
     expect(findRandom).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips memory cache when exclude filters are present', async () => {
+    findRandom.mockResolvedValue({
+      id: 'w-skip-cache',
+      title: 'Skip Cache',
+      timeCapSeconds: 300,
+      equipment: JSON.stringify(['barbell']),
+      data: JSON.stringify({ rounds: [5] }),
+      isPublished: true
+    });
+
+    const first = await GET(
+      new Request('https://example.com/api/workouts/random?exclude=w2,w1')
+    );
+    const second = await GET(
+      new Request('https://example.com/api/workouts/random?exclude=w2,w1')
+    );
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(findRandom).toHaveBeenCalledTimes(2);
+    expect(first.headers.get('cache-control')).toBe('private, no-store');
   });
 
   it('returns 400 for invalid timeCapMax', async () => {
