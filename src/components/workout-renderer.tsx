@@ -46,6 +46,7 @@ export function WorkoutRenderer({ workout }: WorkoutRendererProps) {
   return (
     <article className="workout-card">
       <header className="workout-header">
+        <p className="workout-eyebrow">Workout</p>
         <h2>{workout.title}</h2>
         <p className="muted workout-meta">
           {Math.floor(workout.timeCapSeconds / 60)} min cap
@@ -78,7 +79,7 @@ export function WorkoutRenderer({ workout }: WorkoutRendererProps) {
                 <li key={`${movement.name}-${movementIndex}`}>
                   <span className="movement-name">{movement.name}</span>
                   <span className="muted movement-details">{formatMovementDetails(movement)}</span>
-                  {movement.notes ? <em>{movement.notes}</em> : null}
+                  {movement.notes ? <em className="movement-notes">{movement.notes}</em> : null}
                 </li>
               ))}
             </ul>

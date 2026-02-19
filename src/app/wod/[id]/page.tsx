@@ -101,14 +101,17 @@ export default async function WorkoutByIdPage({ params }: WorkoutPageProps) {
     <main className="page">
       <WorkoutPageAnalytics found={Boolean(workout)} />
       <section className="controls">
-        <h1>Shared WOD</h1>
-        <p className="muted">Shareable workout page rendered on the server.</p>
+        <p className="panel-kicker">Shared Workout</p>
+        <h1 className="panel-title">WOD</h1>
+        <p className="muted">Server-rendered workout page for easy sharing.</p>
+        <div className="controls-divider" />
         <p>
           <a href="/" className="link-back">Back to random WOD</a>
         </p>
       </section>
 
       <section className="result">
+        <p className="panel-kicker">Details</p>
         {workout ? (
           <WorkoutRenderer workout={workout.view} />
         ) : (
