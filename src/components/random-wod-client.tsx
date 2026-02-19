@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 
+import { trackAnalyticsEvent } from '../lib/analytics.js';
 import { parseWorkoutView, type WorkoutView } from '../lib/workout-view';
 import { WorkoutRenderer } from './workout-renderer';
 
@@ -31,7 +32,9 @@ type UiState = {
   workout: WorkoutView | null;
 };
 
-const toApiErrorMessage = async (response: Response): Promise<string> => {
+const toApiError = async (
+  response: Response
+): Promise<{ message: string; code?: string }> => {
   try {
     const payload = (await response.json()) as unknown;
     if (
@@ -43,13 +46,21 @@ const toApiErrorMessage = async (response: Response): Promise<string> => {
       'message' in payload.error &&
       typeof payload.error.message === 'string'
     ) {
-      return payload.error.message;
+      const code =
+        'code' in payload.error && typeof payload.error.code === 'string'
+          ? payload.error.code
+          : undefined;
+
+      return {
+        message: payload.error.message,
+        code
+      };
     }
   } catch {
-    return `Request failed with status ${response.status}`;
+    return { message: `Request failed with status ${response.status}` };
   }
 
-  return `Request failed with status ${response.status}`;
+  return { message: `Request failed with status ${response.status}` };
 };
 
 export function RandomWodClient() {
@@ -73,6 +84,12 @@ export function RandomWodClient() {
   };
 
   const fetchRandomWorkout = async () => {
+    trackAnalyticsEvent('random_workout_requested', {
+      has_time_cap_filter: timeCapMax.length > 0,
+      equipment_count: selectedEquipment.length,
+      exclude_count: excludeHistory.length
+    });
+
     setUiState((state) => ({ ...state, status: 'loading', message: null }));
 
     const query = new URLSearchParams();
@@ -91,6 +108,11 @@ export function RandomWodClient() {
     try {
       response = await fetch(endpoint, { method: 'GET', cache: 'no-store' });
     } catch {
+      trackAnalyticsEvent('api_error', {
+        route: '/api/workouts/random',
+        status: 0,
+        code: 'NETWORK_ERROR'
+      });
       setUiState({
         status: 'error',
         message: 'Could not reach the server. Please try again.',
@@ -100,10 +122,15 @@ export function RandomWodClient() {
     }
 
     if (!response.ok) {
-      const message = await toApiErrorMessage(response);
+      const apiError = await toApiError(response);
+      trackAnalyticsEvent('api_error', {
+        route: '/api/workouts/random',
+        status: response.status,
+        code: apiError.code ?? 'UNKNOWN'
+      });
       setUiState({
         status: response.status === 404 ? 'empty' : 'error',
-        message,
+        message: apiError.message,
         workout: null
       });
       return;
@@ -111,6 +138,11 @@ export function RandomWodClient() {
 
     const payload = parseWorkoutView(await response.json());
     if (payload === null) {
+      trackAnalyticsEvent('api_error', {
+        route: '/api/workouts/random',
+        status: 200,
+        code: 'INVALID_PAYLOAD'
+      });
       setUiState({
         status: 'error',
         message: 'API returned an invalid workout payload',
@@ -122,6 +154,11 @@ export function RandomWodClient() {
     setExcludeHistory((current) =>
       current.includes(payload.id) ? current : [...current, payload.id]
     );
+    trackAnalyticsEvent('workout_rendered', {
+      source: 'random',
+      equipment_count: payload.equipment.length,
+      time_cap_seconds: payload.timeCapSeconds
+    });
     setUiState({
       status: 'success',
       message: null,

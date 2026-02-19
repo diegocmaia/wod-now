@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { cache } from 'react';
 
+import { WorkoutPageAnalytics } from '../../../components/workout-page-analytics';
 import { WorkoutRenderer } from '../../../components/workout-renderer';
 import { parseWorkoutView } from '../../../lib/workout-view';
 import { db } from '../../../lib/db.js';
@@ -98,6 +99,7 @@ export default async function WorkoutByIdPage({ params }: WorkoutPageProps) {
 
   return (
     <main className="page">
+      <WorkoutPageAnalytics found={Boolean(workout)} />
       <section className="controls">
         <h1>Shared WOD</h1>
         <p className="muted">Shareable workout page rendered on the server.</p>
