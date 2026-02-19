@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { resetApiAbuseProtectionStateForTests } from '../../src/lib/api-abuse-protection.js';
 
 const { findRandom } = vi.hoisted(() => ({
   findRandom: vi.fn()
@@ -19,6 +20,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   findRandom.mockReset();
   clearRandomWorkoutCache();
+  resetApiAbuseProtectionStateForTests();
 });
 
 describe('GET /api/workouts/random', () => {
@@ -140,5 +142,24 @@ describe('GET /api/workouts/random', () => {
         message: 'timeCapMax must be a positive integer'
       }
     });
+  });
+
+  it('blocks known suspicious user agents', async () => {
+    const response = await GET(
+      new Request('https://example.com/api/workouts/random', {
+        headers: {
+          'user-agent': 'sqlmap/1.0'
+        }
+      })
+    );
+
+    expect(response.status).toBe(403);
+    expect(await response.json()).toEqual({
+      error: {
+        code: 'BOT_BLOCKED',
+        message: 'Request blocked by abuse protections'
+      }
+    });
+    expect(findRandom).not.toHaveBeenCalled();
   });
 });

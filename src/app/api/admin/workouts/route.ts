@@ -1,5 +1,13 @@
 import { z } from 'zod';
 
+import {
+  applyRateLimitHeaders,
+  clearAdminAuthFailureState,
+  enforceAdminRoutePreAuth,
+  registerAdminAuthFailure,
+  toTimeoutErrorResponse,
+  withApiTimeout
+} from '../../../../lib/api-abuse-protection.js';
 import { jsonError, type ApiErrorDetail } from '../../../../lib/api-error.js';
 import { db } from '../../../../lib/db.js';
 import { clearRandomWorkoutCache } from '../../../../lib/random-workout-cache.js';
@@ -8,10 +16,6 @@ import { safeParseWorkout } from '../../../../lib/workout-schema.js';
 type AdminWorkoutResponse = {
   id: string;
   isPublished: boolean;
-};
-
-const unauthorized = (): Response => {
-  return jsonError(401, 'UNAUTHORIZED', 'Missing or invalid admin API key');
 };
 
 const badRequest = (message: string, details?: ApiErrorDetail[]): Response => {
@@ -55,51 +59,71 @@ const parseAdminAuth = (request: Request): boolean => {
 };
 
 export async function POST(request: Request): Promise<Response> {
-  if (!parseAdminAuth(request)) {
-    return unauthorized();
+  const protection = enforceAdminRoutePreAuth(request);
+  if ('response' in protection) {
+    return protection.response;
   }
+
+  if (!parseAdminAuth(request)) {
+    const denied = registerAdminAuthFailure(protection.key).response;
+    return applyRateLimitHeaders(denied, protection.rateLimitHeaders);
+  }
+  clearAdminAuthFailureState(protection.key);
 
   let payload: unknown;
   try {
     payload = await request.json();
   } catch {
-    return badRequest('Request body must be valid JSON');
+    const response = badRequest('Request body must be valid JSON');
+    return applyRateLimitHeaders(response, protection.rateLimitHeaders);
   }
 
   const parsedWorkout = safeParseWorkout(payload);
   if (!parsedWorkout.success) {
-    return badRequest('Workout payload validation failed', toValidationDetails(parsedWorkout.error.issues));
+    const response = badRequest(
+      'Workout payload validation failed',
+      toValidationDetails(parsedWorkout.error.issues)
+    );
+    return applyRateLimitHeaders(response, protection.rateLimitHeaders);
   }
 
   const workout = parsedWorkout.data;
-  const persisted = await db.workout.upsert({
-    where: { id: workout.id },
-    create: {
-      id: workout.id,
-      title: workout.title,
-      timeCapSeconds: workout.timeCapSeconds ?? 0,
-      equipment: JSON.stringify(workout.equipment),
-      data: JSON.stringify({
-        blocks: workout.blocks,
-        ...(workout.notes ? { notes: workout.notes } : {})
+  let persisted;
+  try {
+    persisted = await withApiTimeout(
+      db.workout.upsert({
+        where: { id: workout.id },
+        create: {
+          id: workout.id,
+          title: workout.title,
+          timeCapSeconds: workout.timeCapSeconds ?? 0,
+          equipment: JSON.stringify(workout.equipment),
+          data: JSON.stringify({
+            blocks: workout.blocks,
+            ...(workout.notes ? { notes: workout.notes } : {})
+          }),
+          isPublished: workout.isPublished
+        },
+        update: {
+          title: workout.title,
+          timeCapSeconds: workout.timeCapSeconds ?? 0,
+          equipment: JSON.stringify(workout.equipment),
+          data: JSON.stringify({
+            blocks: workout.blocks,
+            ...(workout.notes ? { notes: workout.notes } : {})
+          }),
+          isPublished: workout.isPublished
+        },
+        select: {
+          id: true,
+          isPublished: true
+        }
       }),
-      isPublished: workout.isPublished
-    },
-    update: {
-      title: workout.title,
-      timeCapSeconds: workout.timeCapSeconds ?? 0,
-      equipment: JSON.stringify(workout.equipment),
-      data: JSON.stringify({
-        blocks: workout.blocks,
-        ...(workout.notes ? { notes: workout.notes } : {})
-      }),
-      isPublished: workout.isPublished
-    },
-    select: {
-      id: true,
-      isPublished: true
-    }
-  });
+      'admin'
+    );
+  } catch {
+    return toTimeoutErrorResponse();
+  }
 
   const response: AdminWorkoutResponse = {
     id: persisted.id,
@@ -107,5 +131,6 @@ export async function POST(request: Request): Promise<Response> {
   };
 
   clearRandomWorkoutCache();
-  return Response.json(response, { status: 200 });
+  const okResponse = Response.json(response, { status: 200 });
+  return applyRateLimitHeaders(okResponse, protection.rateLimitHeaders);
 }

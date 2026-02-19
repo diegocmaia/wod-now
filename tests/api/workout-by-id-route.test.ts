@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { resetApiAbuseProtectionStateForTests } from '../../src/lib/api-abuse-protection.js';
 
 const { findFirst } = vi.hoisted(() => ({
   findFirst: vi.fn()
@@ -16,6 +17,7 @@ import { GET } from '../../src/app/api/workouts/[id]/route.js';
 
 afterEach(() => {
   findFirst.mockReset();
+  resetApiAbuseProtectionStateForTests();
 });
 
 describe('GET /api/workouts/[id]', () => {

@@ -1,3 +1,9 @@
+import {
+  applyRateLimitHeaders,
+  enforcePublicApiProtections,
+  toTimeoutErrorResponse,
+  withApiTimeout
+} from '../../../../lib/api-abuse-protection.js';
 import { jsonError } from '../../../../lib/api-error.js';
 import { db } from '../../../../lib/db.js';
 import {
@@ -60,15 +66,22 @@ const toCacheKey = (query: RandomWorkoutQuery): string => {
 };
 
 export async function GET(request: Request): Promise<Response> {
+  const protection = enforcePublicApiProtections(request);
+  if ('response' in protection) {
+    return protection.response;
+  }
+
   const query = parseQuery(request);
   if ('error' in query) {
-    return jsonError(400, 'BAD_REQUEST', query.error);
+    const response = jsonError(400, 'BAD_REQUEST', query.error);
+    return applyRateLimitHeaders(response, protection.rateLimitHeaders);
   }
 
   const cacheKey = toCacheKey(query);
   const cached = getRandomWorkoutCache<WorkoutResponse>(cacheKey);
   if (cached) {
-    return Response.json(cached, { status: 200 });
+    const response = Response.json(cached, { status: 200 });
+    return applyRateLimitHeaders(response, protection.rateLimitHeaders);
   }
 
   const where = {
@@ -80,20 +93,31 @@ export async function GET(request: Request): Promise<Response> {
     ...(query.equipment.length > 0 ? { equipmentAll: query.equipment } : {})
   };
 
-  const workout = await db.workout.findRandom({
-    where,
-    select: workoutApiSelect
-  });
+  let workout;
+  try {
+    workout = await withApiTimeout(
+      db.workout.findRandom({
+        where,
+        select: workoutApiSelect
+      }),
+      'public'
+    );
+  } catch {
+    return toTimeoutErrorResponse();
+  }
 
   if (!workout) {
-    return jsonError(404, 'NOT_FOUND', 'No workout matched the provided filters');
+    const response = jsonError(404, 'NOT_FOUND', 'No workout matched the provided filters');
+    return applyRateLimitHeaders(response, protection.rateLimitHeaders);
   }
 
   const response = toWorkoutResponse(workout);
   if (response === null) {
-    return jsonError(500, 'INTERNAL_ERROR', 'Stored workout payload is invalid');
+    const invalidResponse = jsonError(500, 'INTERNAL_ERROR', 'Stored workout payload is invalid');
+    return applyRateLimitHeaders(invalidResponse, protection.rateLimitHeaders);
   }
 
   setRandomWorkoutCache(cacheKey, response);
-  return Response.json(response, { status: 200 });
+  const okResponse = Response.json(response, { status: 200 });
+  return applyRateLimitHeaders(okResponse, protection.rateLimitHeaders);
 }

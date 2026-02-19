@@ -21,6 +21,24 @@ Create a `.env` file in the repo root.
 - `ADMIN_API_KEY`:
   - Required by `POST /api/admin/workouts` via `x-admin-key` header.
   - Example: `ADMIN_API_KEY="replace-with-long-random-secret"`
+- `API_PUBLIC_RATE_LIMIT_PER_MINUTE`:
+  - Optional public API requests per IP+route per minute (default `60`).
+- `API_ADMIN_RATE_LIMIT_PER_MINUTE`:
+  - Optional admin API requests per IP per minute (default `12`).
+- `API_ADMIN_AUTH_FAILURE_THRESHOLD`:
+  - Optional failed admin auth attempts before lockout (default `5`).
+- `API_ADMIN_LOCKOUT_BASE_SECONDS`:
+  - Optional base lockout duration in seconds (default `30`), with exponential backoff.
+- `API_ADMIN_LOCKOUT_MAX_SECONDS`:
+  - Optional max lockout duration in seconds (default `900`).
+- `API_ADMIN_REQUEST_MAX_BYTES`:
+  - Optional max request body size for admin route (default `65536`).
+- `API_PUBLIC_REQUEST_TIMEOUT_MS`:
+  - Optional timeout for public route DB operations (default `1500`).
+- `API_ADMIN_REQUEST_TIMEOUT_MS`:
+  - Optional timeout for admin route DB operations (default `2500`).
+- `API_MAX_URL_LENGTH`:
+  - Optional max request URL length before `414` (default `2048`).
 
 Reference example:
 
@@ -86,6 +104,12 @@ Phase 2 validation evidence checklist is in `/Users/dmaia/development/repos/wod-
   - `error.code: string`
   - `error.message: string`
   - `error.details?: { path: string; message: string }[]`
+- Abuse protection responses:
+  - `429` for rate limits/lockouts (`Retry-After` header included)
+  - `403` for blocked suspicious bot/scanner patterns
+  - `414` for oversized URL requests
+  - `413` for oversized admin request bodies
+  - `503` when request timeout thresholds are exceeded
 
 ### `GET /api/workouts/random`
 - Query params:
@@ -124,4 +148,5 @@ Phase 2 validation evidence checklist is in `/Users/dmaia/development/repos/wod-
     - `id: string`
     - `isPublished: boolean`
   - `401` when `x-admin-key` is missing or invalid
+  - `429` when admin lockout/rate limit is triggered (includes `Retry-After`)
   - `400` when request body JSON is invalid or workout validation fails
