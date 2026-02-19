@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetApiAbuseProtectionStateForTests } from '../../src/lib/api-abuse-protection.js';
 
 const { upsert } = vi.hoisted(() => ({
   upsert: vi.fn()
@@ -22,6 +23,8 @@ import { POST } from '../../src/app/api/admin/workouts/route.js';
 
 describe('POST /api/admin/workouts', () => {
   const originalAdminKey = process.env.ADMIN_API_KEY;
+  const originalFailureThreshold = process.env.API_ADMIN_AUTH_FAILURE_THRESHOLD;
+  const originalLockoutBaseSeconds = process.env.API_ADMIN_LOCKOUT_BASE_SECONDS;
 
   beforeEach(() => {
     process.env.ADMIN_API_KEY = 'secret-key';
@@ -33,9 +36,20 @@ describe('POST /api/admin/workouts', () => {
     } else {
       process.env.ADMIN_API_KEY = originalAdminKey;
     }
+    if (originalFailureThreshold === undefined) {
+      delete process.env.API_ADMIN_AUTH_FAILURE_THRESHOLD;
+    } else {
+      process.env.API_ADMIN_AUTH_FAILURE_THRESHOLD = originalFailureThreshold;
+    }
+    if (originalLockoutBaseSeconds === undefined) {
+      delete process.env.API_ADMIN_LOCKOUT_BASE_SECONDS;
+    } else {
+      process.env.API_ADMIN_LOCKOUT_BASE_SECONDS = originalLockoutBaseSeconds;
+    }
 
     upsert.mockReset();
     clearRandomWorkoutCache.mockReset();
+    resetApiAbuseProtectionStateForTests();
   });
 
   it('returns 401 when x-admin-key is missing', async () => {
@@ -216,5 +230,53 @@ describe('POST /api/admin/workouts', () => {
       }
     });
     expect(clearRandomWorkoutCache).toHaveBeenCalledTimes(1);
+  });
+
+  it('locks admin route after repeated invalid keys and returns retry headers', async () => {
+    process.env.API_ADMIN_AUTH_FAILURE_THRESHOLD = '2';
+    process.env.API_ADMIN_LOCKOUT_BASE_SECONDS = '60';
+
+    const first = await POST(
+      new Request('https://example.com/api/admin/workouts', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-admin-key': 'bad-1'
+        },
+        body: JSON.stringify({})
+      })
+    );
+    const second = await POST(
+      new Request('https://example.com/api/admin/workouts', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-admin-key': 'bad-2'
+        },
+        body: JSON.stringify({})
+      })
+    );
+    const third = await POST(
+      new Request('https://example.com/api/admin/workouts', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-admin-key': 'secret-key'
+        },
+        body: JSON.stringify({})
+      })
+    );
+
+    expect(first.status).toBe(401);
+    expect(second.status).toBe(429);
+    expect(second.headers.get('retry-after')).toBe('60');
+    expect(await second.json()).toEqual({
+      error: {
+        code: 'ADMIN_LOCKED',
+        message: 'Too many invalid admin authentication attempts. Please retry later.'
+      }
+    });
+    expect(third.status).toBe(429);
+    expect(upsert).not.toHaveBeenCalled();
   });
 });

@@ -15,7 +15,8 @@ export const jsonError = (
   status: number,
   code: string,
   message: string,
-  details?: ApiErrorDetail[]
+  details?: ApiErrorDetail[],
+  headers?: HeadersInit
 ): Response => {
   const body: ApiError = {
     error: {
@@ -25,5 +26,5 @@ export const jsonError = (
     }
   };
 
-  return Response.json(body, { status });
+  return Response.json(body, { status, headers });
 };
