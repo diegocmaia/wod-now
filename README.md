@@ -97,6 +97,7 @@ Run these after deployment (or locally with `npm run dev`).
 Use the V1 release runbook in `/Users/dmaia/development/repos/wod-now/docs/v1-deploy-checklist.md`.
 Provider selection decision for Phase 2 is documented in `/Users/dmaia/development/repos/wod-now/docs/phase-2-postgres-provider-decision.md`.
 Phase 2 validation evidence checklist is in `/Users/dmaia/development/repos/wod-now/docs/phase-2-managed-postgres-validation.md`.
+Security header policy and CSP exceptions are documented in `/Users/dmaia/development/repos/wod-now/docs/security-headers.md`.
 
 ## API Contracts
 ### Error response contract (all endpoints)
