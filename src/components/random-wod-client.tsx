@@ -178,8 +178,13 @@ export function RandomWodClient() {
   return (
     <main className="page">
       <section className="controls">
-        <h1>WOD Now</h1>
-        <p className="muted">Pick your constraints and draw a random published workout.</p>
+        <p className="panel-kicker">Random CrossFit Workout</p>
+        <h1 className="panel-title">WOD Now</h1>
+        <p className="muted">
+          Choose a few limits and draw one clean, published workout.
+        </p>
+
+        <div className="controls-divider" />
 
         <label htmlFor="time-cap">Time cap</label>
         <select
@@ -222,7 +227,7 @@ export function RandomWodClient() {
             disabled={uiState.status === 'loading'}
             className="button-primary"
           >
-            {uiState.status === 'loading' ? 'Finding workout...' : 'Get random workout'}
+            {uiState.status === 'loading' ? 'Finding workout...' : 'Draw workout'}
           </button>
           <button
             type="button"
@@ -234,13 +239,12 @@ export function RandomWodClient() {
           </button>
         </div>
         <p className="muted session-meta">
-          Excluded this session:
-          {' '}
-          {excludeHistory.length}
+          No-repeat history: {excludeHistory.length}
         </p>
       </section>
 
       <section className="result" aria-live="polite">
+        <p className="panel-kicker">Result</p>
         {uiState.status === 'error' && uiState.message ? <p className="error">{uiState.message}</p> : null}
         {uiState.workout ? (
           <WorkoutRenderer workout={uiState.workout} />
