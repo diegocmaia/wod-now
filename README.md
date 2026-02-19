@@ -11,6 +11,13 @@ Create a `.env` file in the repo root.
 - `NEXT_PUBLIC_SITE_URL`:
   - Optional but recommended canonical site origin used for metadata, `robots.txt`, and `sitemap.xml`.
   - Example: `NEXT_PUBLIC_SITE_URL="https://wod-now.com"`
+- `NEXT_PUBLIC_ANALYTICS_PROVIDER`:
+  - Optional analytics provider selector (default `plausible`).
+- `NEXT_PUBLIC_PLAUSIBLE_DOMAIN`:
+  - Optional analytics domain for Plausible (default `wod-now.com`).
+- `NEXT_PUBLIC_ANALYTICS_ENABLED`:
+  - Optional analytics override (`true`/`false`).
+  - By default analytics is enabled in production and disabled locally.
 - `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGSSLMODE`, `AWS_REGION`:
   - Used by IAM wrapper scripts to generate short-lived Postgres auth tokens and build Prisma URLs for migrations/seed.
   - Also used by runtime API handlers (`pg` + IAM signer) to query Aurora without static DB URLs.
@@ -49,6 +56,9 @@ Reference example:
 DATABASE_URL=""
 DIRECT_URL=""
 NEXT_PUBLIC_SITE_URL=""
+NEXT_PUBLIC_ANALYTICS_ENABLED=""
+NEXT_PUBLIC_ANALYTICS_PROVIDER="plausible"
+NEXT_PUBLIC_PLAUSIBLE_DOMAIN="wod-now.com"
 PGHOST=""
 PGPORT="5432"
 PGUSER=""
@@ -102,6 +112,7 @@ Use the V1 release runbook in `/Users/dmaia/development/repos/wod-now/docs/v1-de
 Provider selection decision for Phase 2 is documented in `/Users/dmaia/development/repos/wod-now/docs/phase-2-postgres-provider-decision.md`.
 Phase 2 validation evidence checklist is in `/Users/dmaia/development/repos/wod-now/docs/phase-2-managed-postgres-validation.md`.
 Security header policy and CSP exceptions are documented in `/Users/dmaia/development/repos/wod-now/docs/security-headers.md`.
+Analytics provider setup and event taxonomy are documented in `/Users/dmaia/development/repos/wod-now/docs/analytics.md`.
 
 ## API Contracts
 ### Error response contract (all endpoints)
