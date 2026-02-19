@@ -14,6 +14,7 @@
     "db:migrate:deploy:iam": "node scripts/prisma-with-rds-iam.mjs prisma migrate deploy",
     "db:migrate:status:iam": "node scripts/prisma-with-rds-iam.mjs prisma migrate status",
     "check:security-headers": "node scripts/check-security-headers.mjs",
+    "bench:random-workout-query": "node scripts/benchmark-random-workout-query.mjs",
     "typecheck": "tsc --noEmit",
     "test": "npm run prisma:generate && vitest run && npm run typecheck",
     "seed": "node --import=tsx prisma/seed.ts",

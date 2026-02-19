@@ -18,4 +18,6 @@ model Workout {
 
   @@index([isPublished], map: "idx_workouts_is_published")
   @@index([id], map: "idx_workouts_id_lookup")
+  @@index([isPublished, id], map: "idx_workouts_is_published_id")
+  @@index([isPublished, timeCapSeconds, id], map: "idx_workouts_is_published_timecap_id")
 }
