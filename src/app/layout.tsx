@@ -55,7 +55,16 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body>
-        {children}
+        <div className="site-shell">
+          {children}
+          <footer className="site-footer">
+            <p className="muted">
+              <a href="/privacy-policy">Privacy Policy</a>
+              {' · '}
+              <a href="/terms-of-use">Terms of Use</a>
+            </p>
+          </footer>
+        </div>
         <AnalyticsScript />
       </body>
     </html>
