@@ -19,18 +19,18 @@ Current CSP:
 - `form-action 'self'`
 - `frame-ancestors 'none'`
 - `object-src 'none'`
-- `script-src 'self' 'unsafe-inline' https://plausible.io`
+- `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com`
 - `style-src 'self' 'unsafe-inline'`
 - `img-src 'self' data: blob:`
 - `font-src 'self' data:`
-- `connect-src 'self' https://plausible.io`
+- `connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com`
 - `upgrade-insecure-requests`
 
 Documented exceptions:
 - `script-src 'unsafe-inline'`: required for current Next.js runtime inline scripts.
 - `style-src 'unsafe-inline'`: required for framework-injected inline styles.
 - `img-src data: blob:` and `font-src data:`: support local data/blob assets used by the app/runtime.
-- `script-src/connect-src https://plausible.io`: required for Plausible analytics script loading and event delivery.
+- `script-src/connect-src` GA4 domains: required for Google Analytics script loading and event delivery.
 
 No cookies are issued by this app today; if cookies are introduced later, they must use `Secure`, `HttpOnly`, and `SameSite` defaults unless there is a documented exception.
 

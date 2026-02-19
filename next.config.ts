@@ -6,11 +6,11 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "script-src 'self' 'unsafe-inline' https://plausible.io",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  "connect-src 'self' https://plausible.io",
+  "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com",
   'upgrade-insecure-requests'
 ].join('; ');
 
