@@ -1,3 +1,6 @@
+import type { Metadata } from 'next';
+import { cache } from 'react';
+
 import { WorkoutRenderer } from '../../../components/workout-renderer';
 import { parseWorkoutView } from '../../../lib/workout-view';
 import { db } from '../../../lib/db.js';
@@ -9,7 +12,7 @@ type WorkoutPageProps = {
   }>;
 };
 
-const getPublishedWorkout = async (id: string) => {
+const getPublishedWorkout = cache(async (id: string) => {
   const workout = await db.workout.findFirst({
     where: {
       id,
@@ -27,8 +30,67 @@ const getPublishedWorkout = async (id: string) => {
     return null;
   }
 
-  return parseWorkoutView(response);
-};
+  const view = parseWorkoutView(response);
+  if (!view) {
+    return null;
+  }
+
+  return {
+    response,
+    view
+  };
+});
+
+export async function generateMetadata({ params }: WorkoutPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
+  const workout = await getPublishedWorkout(resolvedParams.id);
+
+  if (!workout) {
+    return {
+      title: 'Workout Unavailable',
+      description: `Workout ${resolvedParams.id} was not found or is not published.`,
+      robots: {
+        index: false,
+        follow: false
+      }
+    };
+  }
+
+  const canonicalPath = `/wod/${workout.response.id}`;
+  const equipmentSummary =
+    workout.response.equipment.length > 0
+      ? `Equipment: ${workout.response.equipment.join(', ')}.`
+      : 'No equipment required.';
+  const description = `${workout.response.title}. ${equipmentSummary} Time cap: ${workout.response.timeCapSeconds} seconds.`;
+
+  return {
+    title: workout.response.title,
+    description,
+    alternates: {
+      canonical: canonicalPath
+    },
+    openGraph: {
+      type: 'article',
+      url: canonicalPath,
+      title: workout.response.title,
+      description,
+      images: [
+        {
+          url: '/opengraph-image',
+          width: 1200,
+          height: 630,
+          alt: `${workout.response.title} preview image`
+        }
+      ]
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: workout.response.title,
+      description,
+      images: ['/twitter-image']
+    }
+  };
+}
 
 export default async function WorkoutByIdPage({ params }: WorkoutPageProps) {
   const resolvedParams = await params;
@@ -46,7 +108,7 @@ export default async function WorkoutByIdPage({ params }: WorkoutPageProps) {
 
       <section className="result">
         {workout ? (
-          <WorkoutRenderer workout={workout} />
+          <WorkoutRenderer workout={workout.view} />
         ) : (
           <article className="workout-card">
             <h2>Workout unavailable</h2>
