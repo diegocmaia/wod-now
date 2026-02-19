@@ -1,4 +1,6 @@
 const LOCALHOST_HOSTNAMES = new Set(['localhost', '127.0.0.1']);
+const DEFAULT_PRODUCTION_SITE_URL = 'https://wod-now.com';
+const DEFAULT_DEVELOPMENT_SITE_URL = 'http://localhost:3000';
 
 const withProtocol = (value: string): string => {
   if (value.startsWith('http://') || value.startsWith('https://')) {
@@ -34,5 +36,7 @@ export const getSiteUrl = (): string => {
     return normalizeSiteUrl(configuredUrl);
   }
 
-  return 'http://localhost:3000';
+  return process.env.NODE_ENV === 'production'
+    ? DEFAULT_PRODUCTION_SITE_URL
+    : DEFAULT_DEVELOPMENT_SITE_URL;
 };

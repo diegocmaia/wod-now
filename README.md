@@ -10,7 +10,7 @@ Create a `.env` file in the repo root.
   - Optional for Prisma migration workflows (`prisma migrate deploy`).
 - `NEXT_PUBLIC_SITE_URL`:
   - Optional but recommended canonical site origin used for metadata, `robots.txt`, and `sitemap.xml`.
-  - Example: `NEXT_PUBLIC_SITE_URL="https://wod-now.example.com"`
+  - Example: `NEXT_PUBLIC_SITE_URL="https://wod-now.com"`
 - `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGSSLMODE`, `AWS_REGION`:
   - Used by IAM wrapper scripts to generate short-lived Postgres auth tokens and build Prisma URLs for migrations/seed.
   - Also used by runtime API handlers (`pg` + IAM signer) to query Aurora without static DB URLs.
