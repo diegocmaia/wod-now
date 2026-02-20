@@ -1,5 +1,3 @@
-import { fromTemporaryCredentials } from '@aws-sdk/credential-providers';
-import { Signer } from '@aws-sdk/rds-signer';
 import { Pool } from 'pg';
 
 export type WorkoutRecord = {
@@ -171,64 +169,11 @@ const applyEquipmentAllFilter = (
   };
 };
 
-const createIamPasswordResolver = () => {
-  const region = requiredEnv('AWS_REGION');
-  const roleArn = process.env.AWS_ROLE_ARN;
-  const signer = new Signer({
-    hostname: requiredEnv('PGHOST'),
-    port: Number(requiredEnv('PGPORT')),
-    username: requiredEnv('PGUSER'),
-    region,
-    ...(roleArn
-      ? {
-          credentials: fromTemporaryCredentials({
-            params: { RoleArn: roleArn },
-            clientConfig: { region },
-          })
-        }
-      : {})
-  });
-
-  let cachedToken: { value: string; expiresAtMs: number } | null = null;
-
-  return async (): Promise<string> => {
-    const now = Date.now();
-    if (cachedToken && now < cachedToken.expiresAtMs) {
-      return cachedToken.value;
-    }
-
-    const value = await signer.getAuthToken();
-    cachedToken = {
-      value,
-      expiresAtMs: now + 14 * 60 * 1000
-    };
-
-    return value;
-  };
-};
-
 const createPool = (): Pool => {
-  const connectionString = process.env.DATABASE_URL;
-  const sslMode = process.env.PGSSLMODE ?? 'require';
-  const ssl =
-    sslMode === 'disable'
-      ? false
-      : {
-          rejectUnauthorized: false
-        };
-
-  const pool = connectionString
-    ? new Pool({ connectionString, ssl })
-    : new Pool({
-        host: requiredEnv('PGHOST'),
-        port: Number(requiredEnv('PGPORT')),
-        user: requiredEnv('PGUSER'),
-        database: requiredEnv('PGDATABASE'),
-        password: process.env.PGPASSWORD ?? createIamPasswordResolver(),
-        ssl,
-        max: Number(process.env.PGPOOL_MAX ?? 20)
-      });
-  return pool;
+  return new Pool({
+    connectionString: requiredEnv('DATABASE_URL'),
+    max: Number(process.env.PGPOOL_MAX ?? 20)
+  });
 };
 
 const getPool = (): Pool => {

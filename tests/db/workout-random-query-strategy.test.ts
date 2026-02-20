@@ -4,14 +4,6 @@ const { query } = vi.hoisted(() => ({
   query: vi.fn()
 }));
 
-vi.mock('@aws-sdk/rds-signer', () => ({
-  Signer: class {
-    async getAuthToken(): Promise<string> {
-      return 'token';
-    }
-  }
-}));
-
 vi.mock('pg', () => ({
   Pool: class {
     query = query;

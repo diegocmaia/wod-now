@@ -5,7 +5,7 @@ Validate API behavior against the Vercel-managed AWS Postgres instance after dat
 
 ## Prerequisites
 - `.env` (or deployment environment) includes:
-  - Either `DATABASE_URL` + `DIRECT_URL`, or IAM/tutorial vars (`PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `AWS_REGION`).
+  - `DATABASE_URL` + `DIRECT_URL`.
   - `ADMIN_API_KEY` set to the expected admin secret.
 - App runtime has network access to the managed Postgres instance.
 
@@ -13,11 +13,9 @@ Validate API behavior against the Vercel-managed AWS Postgres instance after dat
 Run in repo root (`/Users/dmaia/development/repos/wod-now`):
 
 1. Apply schema migrations:
-   - URL flow: `npm run db:migrate:deploy`
-   - IAM/tutorial flow: `npm run db:migrate:deploy:iam`
+   - `npm run db:migrate:deploy`
 2. Seed managed Postgres:
-   - URL flow: `npm run seed`
-   - IAM/tutorial flow: `npm run db:seed:iam`
+   - `npm run seed`
 3. Verify seeded counts:
    - `node -e "const {PrismaClient}=require('@prisma/client');(async()=>{const p=new PrismaClient();console.log('total='+await p.workout.count()+' published='+await p.workout.count({where:{isPublished:true}}));await p.$disconnect();})();"`
 4. Start app:
