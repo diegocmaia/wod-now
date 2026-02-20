@@ -1,16 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { attachDatabasePool, query } = vi.hoisted(() => ({
-  attachDatabasePool: vi.fn(),
+const { query } = vi.hoisted(() => ({
   query: vi.fn()
-}));
-
-vi.mock('@vercel/functions', () => ({
-  attachDatabasePool
-}));
-
-vi.mock('@vercel/functions/oidc', () => ({
-  awsCredentialsProvider: vi.fn()
 }));
 
 vi.mock('@aws-sdk/rds-signer', () => ({
@@ -48,7 +39,6 @@ beforeEach(() => {
 afterEach(() => {
   const mutableEnv = process.env as Record<string, string | undefined>;
   query.mockReset();
-  attachDatabasePool.mockReset();
   clearGlobalDbState();
   delete mutableEnv.DATABASE_URL;
   delete mutableEnv.NODE_ENV;

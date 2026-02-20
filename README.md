@@ -19,10 +19,11 @@ Create a `.env` file in the repo root.
   - Required for analytics event/pageview collection.
 - `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGSSLMODE`, `AWS_REGION`:
   - Used by IAM wrapper scripts to generate short-lived Postgres auth tokens and build Prisma URLs for migrations/seed.
-  - Also used by runtime API handlers (`pg` + IAM signer) to query Aurora without static DB URLs.
-  - This aligns with the Vercel Aurora tutorial flow after `vercel env pull`.
+  - Also used by runtime API handlers (`pg` + IAM signer) when `DATABASE_URL` is not provided.
 - `PGPASSWORD`:
-  - Optional override. If set, wrapper scripts use it instead of generating IAM tokens.
+  - Optional password override. If set, wrapper scripts/runtime use it instead of generating IAM tokens.
+- `AWS_ROLE_ARN`:
+  - Optional IAM role to assume before generating RDS auth tokens.
 - `RANDOM_WOD_CACHE_TTL_SECONDS`:
   - Optional cache TTL for `GET /api/workouts/random` responses (default `30`).
 - `RANDOM_WOD_CACHE_MAX_KEYS`:
@@ -70,18 +71,17 @@ AWS_REGION=""
 ADMIN_API_KEY="replace-with-long-random-secret"
 ```
 
-For Vercel-managed AWS Postgres setup:
-- Run `vercel env pull` to load `PG*` and `AWS*` variables locally.
+For AWS RDS/Postgres with IAM auth:
+- Set `PG*` and `AWS_REGION` in your environment (and optionally `AWS_ROLE_ARN`).
 - Use IAM scripts that generate temporary Prisma URLs automatically:
   - `npm run db:migrate:deploy:iam`
   - `npm run db:seed:iam`
-- Store production secrets in Vercel Environment Variables only.
 
 ## Local Database Setup
 1. Copy `.env.example` to `.env`.
 2. Run `npm install`.
 3. Set `.env` values:
-   - Either set `DATABASE_URL` + `DIRECT_URL`, or set `PGHOST`/`PGPORT`/`PGUSER`/`PGDATABASE`/`AWS_REGION`
+   - Either set `DATABASE_URL` + `DIRECT_URL`, or set `PGHOST`/`PGPORT`/`PGUSER`/`PGDATABASE`/`AWS_REGION` (+ optional `AWS_ROLE_ARN`)
    - `ADMIN_API_KEY` -> random secret used by admin ingestion route
 4. Run migrations:
    - URL flow: `npm run db:migrate:deploy`

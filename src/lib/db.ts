@@ -1,5 +1,4 @@
-import { attachDatabasePool } from '@vercel/functions';
-import { awsCredentialsProvider } from '@vercel/functions/oidc';
+import { fromTemporaryCredentials } from '@aws-sdk/credential-providers';
 import { Signer } from '@aws-sdk/rds-signer';
 import { Pool } from 'pg';
 
@@ -174,16 +173,17 @@ const applyEquipmentAllFilter = (
 
 const createIamPasswordResolver = () => {
   const region = requiredEnv('AWS_REGION');
+  const roleArn = process.env.AWS_ROLE_ARN;
   const signer = new Signer({
     hostname: requiredEnv('PGHOST'),
     port: Number(requiredEnv('PGPORT')),
     username: requiredEnv('PGUSER'),
     region,
-    ...(process.env.AWS_ROLE_ARN
+    ...(roleArn
       ? {
-          credentials: awsCredentialsProvider({
-            roleArn: process.env.AWS_ROLE_ARN,
-            clientConfig: { region }
+          credentials: fromTemporaryCredentials({
+            params: { RoleArn: roleArn },
+            clientConfig: { region },
           })
         }
       : {})
@@ -228,20 +228,15 @@ const createPool = (): Pool => {
         ssl,
         max: Number(process.env.PGPOOL_MAX ?? 20)
       });
-
-  attachDatabasePool(pool);
   return pool;
 };
 
 const getPool = (): Pool => {
-  if (process.env.NODE_ENV !== 'production') {
-    if (!globalForDb.dbPool) {
-      globalForDb.dbPool = createPool();
-    }
-    return globalForDb.dbPool;
+  if (!globalForDb.dbPool) {
+    globalForDb.dbPool = createPool();
   }
 
-  return createPool();
+  return globalForDb.dbPool;
 };
 
 const createDbClient = (): DbClient => ({
