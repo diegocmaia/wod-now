@@ -2,7 +2,7 @@ import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { awsCredentialsProvider } from "@vercel/functions/oidc";
+import { fromTemporaryCredentials } from '@aws-sdk/credential-providers';
 
 import { Signer } from '@aws-sdk/rds-signer';
 
@@ -81,10 +81,14 @@ const getPassword = async () => {
     port: Number(process.env.PGPORT),
     username: process.env.PGUSER,
     region: process.env.AWS_REGION,
-    credentials: awsCredentialsProvider({
-      roleArn: process.env.AWS_ROLE_ARN,
-      clientConfig: { region: process.env.AWS_REGION },
-    }),
+    ...(process.env.AWS_ROLE_ARN
+      ? {
+          credentials: fromTemporaryCredentials({
+            params: { RoleArn: process.env.AWS_ROLE_ARN },
+            clientConfig: { region: process.env.AWS_REGION }
+          })
+        }
+      : {})
   });
 
   return signer.getAuthToken();
