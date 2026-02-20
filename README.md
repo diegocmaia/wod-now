@@ -4,10 +4,9 @@
 Create a `.env` file in the repo root.
 
 - `DATABASE_URL`:
-  - Optional for URL-based Prisma workflows (migrations/seed scripts).
-  - Runtime API handlers do not require it when using IAM `PG*` configuration.
+  - Required runtime database connection string for API handlers and scripts.
 - `DIRECT_URL`:
-  - Optional for Prisma migration workflows (`prisma migrate deploy`).
+  - Optional direct database connection string for Prisma migration workflows (`prisma migrate deploy`).
 - `NEXT_PUBLIC_SITE_URL`:
   - Optional but recommended canonical site origin used for metadata, `robots.txt`, and `sitemap.xml`.
   - Example: `NEXT_PUBLIC_SITE_URL="https://wod-now.com"`
@@ -17,13 +16,6 @@ Create a `.env` file in the repo root.
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID`:
   - GA4 measurement ID used by frontend analytics (example: `G-XXXXXXXXXX`).
   - Required for analytics event/pageview collection.
-- `PGHOST`, `PGPORT`, `PGUSER`, `PGDATABASE`, `PGSSLMODE`, `AWS_REGION`:
-  - Used by IAM wrapper scripts to generate short-lived Postgres auth tokens and build Prisma URLs for migrations/seed.
-  - Also used by runtime API handlers (`pg` + IAM signer) when `DATABASE_URL` is not provided.
-- `PGPASSWORD`:
-  - Optional password override. If set, wrapper scripts/runtime use it instead of generating IAM tokens.
-- `AWS_ROLE_ARN`:
-  - Optional IAM role to assume before generating RDS auth tokens.
 - `RANDOM_WOD_CACHE_TTL_SECONDS`:
   - Optional cache TTL for `GET /api/workouts/random` responses (default `30`).
 - `RANDOM_WOD_CACHE_MAX_KEYS`:
@@ -62,33 +54,19 @@ DIRECT_URL=""
 NEXT_PUBLIC_SITE_URL=""
 NEXT_PUBLIC_ANALYTICS_ENABLED=""
 NEXT_PUBLIC_GA_MEASUREMENT_ID=""
-PGHOST=""
-PGPORT="5432"
-PGUSER=""
-PGDATABASE="postgres"
-PGSSLMODE="require"
-AWS_REGION=""
 ADMIN_API_KEY="replace-with-long-random-secret"
 ```
-
-For AWS RDS/Postgres with IAM auth:
-- Set `PG*` and `AWS_REGION` in your environment (and optionally `AWS_ROLE_ARN`).
-- Use IAM scripts that generate temporary Prisma URLs automatically:
-  - `npm run db:migrate:deploy:iam`
-  - `npm run db:seed:iam`
 
 ## Local Database Setup
 1. Copy `.env.example` to `.env`.
 2. Run `npm install`.
 3. Set `.env` values:
-   - Either set `DATABASE_URL` + `DIRECT_URL`, or set `PGHOST`/`PGPORT`/`PGUSER`/`PGDATABASE`/`AWS_REGION` (+ optional `AWS_ROLE_ARN`)
+   - Set `DATABASE_URL` (and optionally `DIRECT_URL` for migrations)
    - `ADMIN_API_KEY` -> random secret used by admin ingestion route
 4. Run migrations:
-   - URL flow: `npm run db:migrate:deploy`
-   - IAM flow: `npm run db:migrate:deploy:iam`
+   - `npm run db:migrate:deploy`
 5. Run seed:
-   - URL flow: `npm run seed`
-   - IAM flow: `npm run db:seed:iam`
+   - `npm run seed`
 6. Verify inserted records:
    - `node -e "const {PrismaClient}=require('@prisma/client');(async()=>{const p=new PrismaClient();console.log('total='+await p.workout.count()+' published='+await p.workout.count({where:{isPublished:true}}));await p.$disconnect();})();"`
 

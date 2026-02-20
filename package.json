@@ -11,15 +11,12 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "prisma migrate status",
-    "db:migrate:deploy:iam": "node scripts/prisma-with-rds-iam.mjs prisma migrate deploy",
-    "db:migrate:status:iam": "node scripts/prisma-with-rds-iam.mjs prisma migrate status",
     "check:security-headers": "node scripts/check-security-headers.mjs",
     "bench:random-workout-query": "node scripts/benchmark-random-workout-query.mjs",
     "typecheck": "tsc --noEmit",
     "test": "npm run prisma:generate && vitest run && npm run typecheck",
     "seed": "node --import=tsx prisma/seed.ts",
-    "db:seed": "npm run seed",
-    "db:seed:iam": "node scripts/prisma-with-rds-iam.mjs node --import=tsx prisma/seed.ts"
+    "db:seed": "npm run seed"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
@@ -31,8 +28,6 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "@aws-sdk/credential-providers": "^3.990.0",
-    "@aws-sdk/rds-signer": "^3.990.0",
     "@prisma/client": "^6.2.1",
     "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
