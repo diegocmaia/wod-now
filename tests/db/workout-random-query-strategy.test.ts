@@ -14,10 +14,16 @@ const clearGlobalDbState = () => {
   const globalForDb = globalThis as typeof globalThis & {
     db: unknown;
     dbPool: unknown;
+    dbDataSource: unknown;
+    parquetWorkouts: unknown;
+    parquetWorkoutsPromise: unknown;
   };
 
   globalForDb.db = undefined;
   globalForDb.dbPool = undefined;
+  globalForDb.dbDataSource = undefined;
+  globalForDb.parquetWorkouts = undefined;
+  globalForDb.parquetWorkoutsPromise = undefined;
 };
 
 const loadDb = async () => import('../../src/lib/db.js');

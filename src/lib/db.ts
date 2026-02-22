@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import path from 'node:path';
 
 export type WorkoutRecord = {
   id: string;
@@ -57,9 +58,14 @@ type DbClient = {
   };
 };
 
+type DataSource = 'postgres' | 'parquet';
+
 type GlobalWithDb = typeof globalThis & {
   db?: DbClient;
   dbPool?: Pool;
+  dbDataSource?: DataSource;
+  parquetWorkouts?: WorkoutRecord[];
+  parquetWorkoutsPromise?: Promise<WorkoutRecord[]>;
 };
 
 const globalForDb = globalThis as GlobalWithDb;
@@ -79,6 +85,28 @@ const requiredEnv = (key: string): string => {
     throw new Error(`Missing required env var: ${key}`);
   }
   return value;
+};
+
+const resolveDataSource = (): DataSource => {
+  const value = (process.env.WORKOUTS_DATA_SOURCE ?? 'postgres').trim().toLowerCase();
+  if (value === 'postgres' || value.length === 0) {
+    return 'postgres';
+  }
+
+  if (value === 'parquet') {
+    return 'parquet';
+  }
+
+  throw new Error(`Unsupported WORKOUTS_DATA_SOURCE value: ${value}`);
+};
+
+const resolveParquetPath = (): string => {
+  const configuredPath = process.env.WORKOUTS_PARQUET_PATH;
+  if (!configuredPath || configuredPath.trim().length === 0) {
+    return path.resolve(process.cwd(), 'data/workouts.parquet');
+  }
+
+  return path.resolve(process.cwd(), configuredPath);
 };
 
 const resolveSelect = (select?: WorkoutSelect): ReadonlyArray<keyof WorkoutRecord> => {
@@ -169,6 +197,75 @@ const applyEquipmentAllFilter = (
   };
 };
 
+const pickSelectedRecord = (
+  workout: WorkoutRecord,
+  columns: ReadonlyArray<keyof WorkoutRecord>
+): WorkoutRecord => {
+  const selected = {} as Record<keyof WorkoutRecord, WorkoutRecord[keyof WorkoutRecord]>;
+
+  for (const column of columns) {
+    selected[column] = workout[column];
+  }
+
+  return selected as WorkoutRecord;
+};
+
+const parseEquipment = (equipment: string): string[] | null => {
+  try {
+    const parsed = JSON.parse(equipment) as unknown;
+    if (!Array.isArray(parsed) || !parsed.every((item) => typeof item === 'string')) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const matchesWhere = (workout: WorkoutRecord, where?: WorkoutWhereInput): boolean => {
+  if (!where) {
+    return true;
+  }
+
+  if (typeof where.id === 'string' && workout.id !== where.id) {
+    return false;
+  }
+
+  if (where.id && typeof where.id !== 'string' && where.id.notIn.length > 0) {
+    if (where.id.notIn.includes(workout.id)) {
+      return false;
+    }
+  }
+
+  if (where.isPublished !== undefined && workout.isPublished !== where.isPublished) {
+    return false;
+  }
+
+  if (
+    where.timeCapSeconds?.lte !== undefined &&
+    workout.timeCapSeconds > where.timeCapSeconds.lte
+  ) {
+    return false;
+  }
+
+  return true;
+};
+
+const matchesEquipmentAll = (workout: WorkoutRecord, equipmentAll?: string[]): boolean => {
+  if (!equipmentAll || equipmentAll.length === 0) {
+    return true;
+  }
+
+  const equipment = parseEquipment(workout.equipment);
+  if (!equipment) {
+    return false;
+  }
+
+  const equipmentSet = new Set(equipment.map((item) => item.toLowerCase()));
+  return equipmentAll.every((required) => equipmentSet.has(required.toLowerCase()));
+};
+
 const createPool = (): Pool => {
   return new Pool({
     connectionString: requiredEnv('DATABASE_URL'),
@@ -184,7 +281,7 @@ const getPool = (): Pool => {
   return globalForDb.dbPool;
 };
 
-const createDbClient = (): DbClient => ({
+const createPostgresDbClient = (): DbClient => ({
   workout: {
     findMany: async ({ where, select }: WorkoutFindManyArgs): Promise<WorkoutRecord[]> => {
       const columns = resolveSelect(select);
@@ -262,10 +359,217 @@ const createDbClient = (): DbClient => ({
   }
 });
 
-const singletonDb = globalForDb.db ?? createDbClient();
+type ParquetCursor = {
+  next: () => Promise<unknown>;
+};
+
+type ParquetReader = {
+  getCursor: () => ParquetCursor;
+  close: () => Promise<void>;
+};
+
+type ParquetModule = {
+  ParquetReader: {
+    openFile: (filePath: string) => Promise<ParquetReader>;
+  };
+};
+
+const coerceText = (value: unknown, field: string): string => {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value === null || value === undefined) {
+    throw new Error(`Invalid parquet row: missing "${field}"`);
+  }
+
+  return String(value);
+};
+
+const coerceJsonText = (value: unknown, field: string): string => {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  const serialized = JSON.stringify(value);
+  if (serialized === undefined) {
+    throw new Error(`Invalid parquet row: unable to serialize "${field}"`);
+  }
+
+  return serialized;
+};
+
+const coerceInt = (value: unknown, field: string): number => {
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    return value;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
+    throw new Error(`Invalid parquet row: "${field}" must be an integer`);
+  }
+
+  return parsed;
+};
+
+const coerceBoolean = (value: unknown, field: string): boolean => {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    if (value.toLowerCase() === 'true') {
+      return true;
+    }
+    if (value.toLowerCase() === 'false') {
+      return false;
+    }
+  }
+
+  throw new Error(`Invalid parquet row: "${field}" must be boolean`);
+};
+
+const toWorkoutRecordFromParquet = (value: unknown): WorkoutRecord => {
+  if (!value || typeof value !== 'object') {
+    throw new Error('Invalid parquet row payload');
+  }
+
+  const row = value as Record<string, unknown>;
+
+  return {
+    id: coerceText(row.id, 'id'),
+    title: coerceText(row.title, 'title'),
+    timeCapSeconds: coerceInt(row.timeCapSeconds, 'timeCapSeconds'),
+    equipment: coerceJsonText(row.equipment, 'equipment'),
+    data: coerceJsonText(row.data, 'data'),
+    isPublished: coerceBoolean(row.isPublished, 'isPublished')
+  };
+};
+
+const loadParquetWorkouts = async (): Promise<WorkoutRecord[]> => {
+  const parquetPath = resolveParquetPath();
+  const importedParquet = await import('parquetjs-lite');
+  const parquet = (importedParquet.default ?? importedParquet) as unknown as ParquetModule;
+  const reader = await parquet.ParquetReader.openFile(parquetPath);
+
+  try {
+    const cursor = reader.getCursor();
+    const workouts: WorkoutRecord[] = [];
+    let row = await cursor.next();
+
+    while (row) {
+      workouts.push(toWorkoutRecordFromParquet(row));
+      row = await cursor.next();
+    }
+
+    return workouts;
+  } finally {
+    await reader.close();
+  }
+};
+
+const getParquetWorkouts = async (): Promise<WorkoutRecord[]> => {
+  if (globalForDb.parquetWorkouts) {
+    return globalForDb.parquetWorkouts;
+  }
+
+  if (!globalForDb.parquetWorkoutsPromise) {
+    globalForDb.parquetWorkoutsPromise = loadParquetWorkouts().then((workouts) => {
+      globalForDb.parquetWorkouts = workouts;
+      return workouts;
+    });
+  }
+
+  return globalForDb.parquetWorkoutsPromise;
+};
+
+const createParquetDbClient = (): DbClient => ({
+  workout: {
+    findMany: async ({ where, select }: WorkoutFindManyArgs): Promise<WorkoutRecord[]> => {
+      const columns = resolveSelect(select);
+      const workouts = await getParquetWorkouts();
+
+      return workouts
+        .filter((workout) => matchesWhere(workout, where))
+        .map((workout) => pickSelectedRecord(workout, columns));
+    },
+    findFirst: async ({ where, select }: WorkoutFindFirstArgs): Promise<WorkoutRecord | null> => {
+      const columns = resolveSelect(select);
+      const workouts = await getParquetWorkouts();
+      const workout = workouts.find((candidate) => matchesWhere(candidate, where));
+
+      if (!workout) {
+        return null;
+      }
+
+      return pickSelectedRecord(workout, columns);
+    },
+    findRandom: async ({ where, select }: WorkoutFindRandomArgs): Promise<WorkoutRecord | null> => {
+      const columns = resolveSelect(select);
+      const workouts = await getParquetWorkouts();
+      const filtered = workouts.filter(
+        (workout) => matchesWhere(workout, where) && matchesEquipmentAll(workout, where?.equipmentAll)
+      );
+
+      if (filtered.length === 0) {
+        return null;
+      }
+
+      const randomIndex = Math.floor(Math.random() * filtered.length);
+      const workout = filtered[randomIndex];
+      if (!workout) {
+        return null;
+      }
+
+      return pickSelectedRecord(workout, columns);
+    },
+    count: async ({ where }: WorkoutCountArgs): Promise<number> => {
+      const workouts = await getParquetWorkouts();
+      return workouts.filter((workout) => matchesWhere(workout, where)).length;
+    },
+    upsert: async ({ where, create, update, select }: WorkoutUpsertArgs): Promise<WorkoutRecord> => {
+      const columns = resolveSelect(select);
+      const workouts = await getParquetWorkouts();
+      const existingIndex = workouts.findIndex((workout) => workout.id === where.id);
+      const existing = existingIndex >= 0 ? workouts[existingIndex] : undefined;
+
+      const merged: WorkoutRecord = {
+        id: where.id,
+        title: update.title ?? existing?.title ?? create.title,
+        timeCapSeconds: update.timeCapSeconds ?? existing?.timeCapSeconds ?? create.timeCapSeconds,
+        equipment: update.equipment ?? existing?.equipment ?? create.equipment,
+        data: update.data ?? existing?.data ?? create.data,
+        isPublished: update.isPublished ?? existing?.isPublished ?? create.isPublished
+      };
+
+      if (existingIndex >= 0) {
+        workouts[existingIndex] = merged;
+      } else {
+        workouts.push(merged);
+      }
+
+      return pickSelectedRecord(merged, columns);
+    }
+  }
+});
+
+const createDbClient = (dataSource: DataSource): DbClient => {
+  if (dataSource === 'parquet') {
+    return createParquetDbClient();
+  }
+
+  return createPostgresDbClient();
+};
+
+const dataSource = resolveDataSource();
+const singletonDb =
+  globalForDb.db && globalForDb.dbDataSource === dataSource
+    ? globalForDb.db
+    : createDbClient(dataSource);
 
 if (process.env.NODE_ENV !== 'production') {
   globalForDb.db = singletonDb;
+  globalForDb.dbDataSource = dataSource;
 }
 
 export const db = singletonDb;
