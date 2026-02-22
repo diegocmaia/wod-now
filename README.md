@@ -4,9 +4,15 @@
 Create a `.env` file in the repo root.
 
 - `DATABASE_URL`:
-  - Required runtime database connection string for API handlers and scripts.
+  - Required runtime database connection string when `WORKOUTS_DATA_SOURCE="postgres"` (default).
 - `DIRECT_URL`:
   - Optional direct database connection string for Prisma migration workflows (`prisma migrate deploy`).
+- `WORKOUTS_DATA_SOURCE`:
+  - Optional workout storage backend selector.
+  - Supported values: `postgres` (default), `parquet`.
+- `WORKOUTS_PARQUET_PATH`:
+  - Optional path to workouts Parquet file when `WORKOUTS_DATA_SOURCE="parquet"`.
+  - Default: `data/workouts.parquet`.
 - `NEXT_PUBLIC_SITE_URL`:
   - Optional but recommended canonical site origin used for metadata, `robots.txt`, and `sitemap.xml`.
   - Example: `NEXT_PUBLIC_SITE_URL="https://wod-now.com"`
@@ -51,11 +57,29 @@ Reference example:
 ```env
 DATABASE_URL=""
 DIRECT_URL=""
+WORKOUTS_DATA_SOURCE="postgres"
+WORKOUTS_PARQUET_PATH="data/workouts.parquet"
 NEXT_PUBLIC_SITE_URL=""
 NEXT_PUBLIC_ANALYTICS_ENABLED=""
 NEXT_PUBLIC_GA_MEASUREMENT_ID=""
 ADMIN_API_KEY="replace-with-long-random-secret"
 ```
+
+## Temporary Parquet Fallback
+Use this only while Postgres connectivity is unavailable.
+
+1. Export curated workouts dataset to Parquet:
+   - `npm run export:workouts:parquet`
+2. Configure `.env`:
+   - `WORKOUTS_DATA_SOURCE="parquet"`
+   - `WORKOUTS_PARQUET_PATH="data/workouts.parquet"` (or your custom path)
+3. Start app:
+   - `npm run dev`
+
+Notes:
+- Parquet mode is temporary and optimized for reads (`GET /api/workouts/*`).
+- Admin upserts are kept in process memory and are not persisted back to the Parquet file.
+- Switch back to Postgres by setting `WORKOUTS_DATA_SOURCE="postgres"` and restoring `DATABASE_URL`.
 
 ## Local Database Setup
 1. Copy `.env.example` to `.env`.

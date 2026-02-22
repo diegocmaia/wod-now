@@ -6,6 +6,9 @@ const clearGlobalDb = () => {
   const globalForDb = globalThis as typeof globalThis & {
     db: unknown;
     dbPool: { end?: () => Promise<void> } | undefined;
+    dbDataSource: unknown;
+    parquetWorkouts: unknown;
+    parquetWorkoutsPromise: unknown;
   };
 
   globalForDb.db = undefined;
@@ -14,6 +17,9 @@ const clearGlobalDb = () => {
     void globalForDb.dbPool.end();
   }
   globalForDb.dbPool = undefined;
+  globalForDb.dbDataSource = undefined;
+  globalForDb.parquetWorkouts = undefined;
+  globalForDb.parquetWorkoutsPromise = undefined;
 };
 
 afterEach(() => {
