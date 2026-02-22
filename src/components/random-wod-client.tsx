@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { trackAnalyticsEvent } from '../lib/analytics.js';
 import { parseWorkoutView, type WorkoutView } from '../lib/workout-view';
@@ -70,6 +70,7 @@ export function RandomWodClient() {
   const [timeCapMax, setTimeCapMax] = useState('');
   const [excludeHistory, setExcludeHistory] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
+  const [scrollToFiltersPending, setScrollToFiltersPending] = useState(false);
   const controlsSectionRef = useRef<HTMLElement | null>(null);
   const [uiState, setUiState] = useState<UiState>({
     status: 'idle',
@@ -196,6 +197,7 @@ export function RandomWodClient() {
       equipment_count: payload.equipment.length,
       time_cap_seconds: payload.timeCapSeconds
     });
+    setScrollToFiltersPending(false);
     setFiltersExpanded(false);
     setUiState({
       status: 'success',
@@ -214,13 +216,39 @@ export function RandomWodClient() {
   };
 
   const toggleFilters = () => {
+    setScrollToFiltersPending(false);
     setFiltersExpanded((current) => !current);
   };
 
   const openFilters = () => {
+    if (filtersExpanded) {
+      controlsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    setScrollToFiltersPending(true);
     setFiltersExpanded(true);
-    controlsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+
+  useEffect(() => {
+    if (!scrollToFiltersPending || !filtersExpanded) {
+      return;
+    }
+
+    let outerFrame = 0;
+    let innerFrame = 0;
+    outerFrame = window.requestAnimationFrame(() => {
+      innerFrame = window.requestAnimationFrame(() => {
+        controlsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setScrollToFiltersPending(false);
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(outerFrame);
+      window.cancelAnimationFrame(innerFrame);
+    };
+  }, [filtersExpanded, scrollToFiltersPending]);
 
   return (
     <main className={`page${hasWorkout ? ' page-has-result' : ''}`}>
