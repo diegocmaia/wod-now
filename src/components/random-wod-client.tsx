@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { trackAnalyticsEvent } from '../lib/analytics.js';
 import { parseWorkoutView, type WorkoutView } from '../lib/workout-view';
@@ -25,6 +25,8 @@ const EQUIPMENT_OPTIONS = [
   'bike',
   'box'
 ] as const;
+
+const RANDOM_WOD_REQUEST_TIMEOUT_MS = 5000;
 
 type UiState = {
   status: 'idle' | 'loading' | 'error' | 'empty' | 'success';
@@ -67,6 +69,8 @@ export function RandomWodClient() {
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
   const [timeCapMax, setTimeCapMax] = useState('');
   const [excludeHistory, setExcludeHistory] = useState<string[]>([]);
+  const [filtersExpanded, setFiltersExpanded] = useState(true);
+  const controlsSectionRef = useRef<HTMLElement | null>(null);
   const [uiState, setUiState] = useState<UiState>({
     status: 'idle',
     message: null,
@@ -74,6 +78,11 @@ export function RandomWodClient() {
   });
 
   const equipmentCount = useMemo(() => selectedEquipment.length, [selectedEquipment]);
+  const selectedTimeCapLabel = useMemo(
+    () => TIME_CAP_OPTIONS.find((option) => option.value === timeCapMax)?.label ?? 'No limit',
+    [timeCapMax]
+  );
+  const hasWorkout = uiState.workout !== null;
 
   const toggleEquipment = (equipment: string) => {
     setSelectedEquipment((current) =>
@@ -83,8 +92,20 @@ export function RandomWodClient() {
     );
   };
 
+  const safeTrack = (eventName: string, props?: Record<string, string | number | boolean>) => {
+    try {
+      trackAnalyticsEvent(eventName, props);
+    } catch {
+      // Ignore analytics failures so primary interactions never break.
+    }
+  };
+
   const fetchRandomWorkout = async () => {
-    trackAnalyticsEvent('random_workout_requested', {
+    if (uiState.status === 'loading') {
+      return;
+    }
+
+    safeTrack('random_workout_requested', {
       has_time_cap_filter: timeCapMax.length > 0,
       equipment_count: selectedEquipment.length,
       exclude_count: excludeHistory.length
@@ -104,26 +125,42 @@ export function RandomWodClient() {
     }
 
     const endpoint = `/api/workouts/random${query.toString() ? `?${query}` : ''}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, RANDOM_WOD_REQUEST_TIMEOUT_MS);
+
     let response: Response;
     try {
-      response = await fetch(endpoint, { method: 'GET', cache: 'no-store' });
-    } catch {
-      trackAnalyticsEvent('api_error', {
+      response = await fetch(endpoint, {
+        method: 'GET',
+        cache: 'no-store',
+        signal: controller.signal
+      });
+    } catch (error) {
+      const isTimeoutError =
+        (error instanceof DOMException && error.name === 'AbortError') ||
+        (error instanceof Error && error.name === 'AbortError');
+      safeTrack('api_error', {
         route: '/api/workouts/random',
         status: 0,
-        code: 'NETWORK_ERROR'
+        code: isTimeoutError ? 'REQUEST_TIMEOUT' : 'NETWORK_ERROR'
       });
       setUiState({
         status: 'error',
-        message: 'Could not reach the server. Please try again.',
+        message: isTimeoutError
+          ? 'Request timed out. Please try again.'
+          : 'Could not reach the server. Please try again.',
         workout: null
       });
       return;
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     if (!response.ok) {
       const apiError = await toApiError(response);
-      trackAnalyticsEvent('api_error', {
+      safeTrack('api_error', {
         route: '/api/workouts/random',
         status: response.status,
         code: apiError.code ?? 'UNKNOWN'
@@ -138,7 +175,7 @@ export function RandomWodClient() {
 
     const payload = parseWorkoutView(await response.json());
     if (payload === null) {
-      trackAnalyticsEvent('api_error', {
+      safeTrack('api_error', {
         route: '/api/workouts/random',
         status: 200,
         code: 'INVALID_PAYLOAD'
@@ -154,11 +191,12 @@ export function RandomWodClient() {
     setExcludeHistory((current) =>
       current.includes(payload.id) ? current : [...current, payload.id]
     );
-    trackAnalyticsEvent('workout_rendered', {
+    safeTrack('workout_rendered', {
       source: 'random',
       equipment_count: payload.equipment.length,
       time_cap_seconds: payload.timeCapSeconds
     });
+    setFiltersExpanded(false);
     setUiState({
       status: 'success',
       message: null,
@@ -175,76 +213,38 @@ export function RandomWodClient() {
     }));
   };
 
+  const toggleFilters = () => {
+    setFiltersExpanded((current) => !current);
+  };
+
+  const openFilters = () => {
+    setFiltersExpanded(true);
+    controlsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
-    <main className="page">
-      <section className="controls">
+    <main className={`page${hasWorkout ? ' page-has-result' : ''}`}>
+      <header className="page-brand">
         <p className="panel-kicker">Random CrossFit Workout</p>
-        <h1 className="panel-title">WOD Now</h1>
-        <p className="muted">
+        <h1 className="panel-title page-brand-title">WOD Now</h1>
+        <p className="muted page-brand-copy">
           Choose a few limits and draw one clean, published workout.
         </p>
+      </header>
 
-        <div className="controls-divider" />
-
-        <label htmlFor="time-cap">Time cap</label>
-        <select
-          id="time-cap"
-          name="timeCapMax"
-          value={timeCapMax}
-          onChange={(event) => setTimeCapMax(event.target.value)}
-        >
-          {TIME_CAP_OPTIONS.map((option) => (
-            <option key={option.value || 'none'} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-
-        <fieldset>
-          <legend>
-            Equipment
-            {' '}
-            ({equipmentCount} selected)
-          </legend>
-          <div className="equipment-grid">
-            {EQUIPMENT_OPTIONS.map((item) => (
-              <label key={item} className="equipment-option">
-                <input
-                  type="checkbox"
-                  checked={selectedEquipment.includes(item)}
-                  onChange={() => toggleEquipment(item)}
-                />
-                <span>{item}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        <div className="controls-actions">
-          <button
-            type="button"
-            onClick={fetchRandomWorkout}
-            disabled={uiState.status === 'loading'}
-            className="button-primary"
-          >
-            {uiState.status === 'loading' ? 'Finding workout...' : 'Draw workout'}
-          </button>
-          <button
-            type="button"
-            onClick={clearHistory}
-            disabled={excludeHistory.length === 0}
-            className="button-secondary"
-          >
-            Reset no-repeat history
-          </button>
+      <section className="result" aria-live="polite" id="result-panel">
+        <div className="result-header-row">
+          <p className="panel-kicker">Result</p>
+          {hasWorkout ? (
+            <button
+              type="button"
+              className="button-secondary result-filter-button"
+              onClick={openFilters}
+            >
+              Edit filters
+            </button>
+          ) : null}
         </div>
-        <p className="muted session-meta">
-          No-repeat history: {excludeHistory.length}
-        </p>
-      </section>
-
-      <section className="result" aria-live="polite">
-        <p className="panel-kicker">Result</p>
         {uiState.status === 'error' && uiState.message ? <p className="error">{uiState.message}</p> : null}
         {uiState.workout ? (
           <WorkoutRenderer workout={uiState.workout} />
@@ -260,6 +260,114 @@ export function RandomWodClient() {
               : 'No workout selected yet.'}
           </p>
         )}
+      </section>
+
+      <section className={`controls${hasWorkout ? ' controls-with-result' : ''}`} ref={controlsSectionRef}>
+        <p className="panel-kicker">Filters</p>
+
+        {hasWorkout ? (
+          <>
+            <p className="muted controls-summary">
+              Time cap:
+              {' '}
+              {selectedTimeCapLabel}
+              {' • '}
+              Equipment:
+              {' '}
+              {equipmentCount}
+              {' • '}
+              No-repeat:
+              {' '}
+              {excludeHistory.length}
+            </p>
+            <div className="controls-top-actions">
+              <button
+                type="button"
+                onClick={toggleFilters}
+                className="button-secondary controls-toggle"
+                aria-expanded={filtersExpanded}
+              >
+                {filtersExpanded ? 'Hide filters' : 'Edit filters'}
+              </button>
+              <button
+                type="button"
+                onClick={fetchRandomWorkout}
+                disabled={uiState.status === 'loading'}
+                className="button-primary controls-redraw"
+              >
+                {uiState.status === 'loading' ? 'Finding workout...' : 'Draw again'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="muted controls-summary">Set limits, then draw a workout.</p>
+        )}
+
+        <div className={`controls-body${hasWorkout && !filtersExpanded ? ' controls-body-collapsed' : ''}`}>
+          <div className="controls-divider" />
+
+          <label htmlFor="time-cap">Time cap</label>
+          <select
+            id="time-cap"
+            name="timeCapMax"
+            value={timeCapMax}
+            onChange={(event) => setTimeCapMax(event.target.value)}
+          >
+            {TIME_CAP_OPTIONS.map((option) => (
+              <option key={option.value || 'none'} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+
+          <fieldset>
+            <legend>
+              Equipment
+              {' '}
+              ({equipmentCount} selected)
+            </legend>
+            <div className="equipment-grid">
+              {EQUIPMENT_OPTIONS.map((item) => (
+                <label key={item} className="equipment-option">
+                  <input
+                    type="checkbox"
+                    checked={selectedEquipment.includes(item)}
+                    onChange={() => toggleEquipment(item)}
+                  />
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <div className="controls-actions">
+            <button
+              type="button"
+              onClick={fetchRandomWorkout}
+              disabled={uiState.status === 'loading'}
+              className="button-primary"
+            >
+              {uiState.status === 'loading' ? 'Finding workout...' : hasWorkout ? 'Draw again' : 'Draw workout'}
+            </button>
+            <button
+              type="button"
+              onClick={clearHistory}
+              disabled={excludeHistory.length === 0}
+              className="button-secondary"
+            >
+              Reset no-repeat history
+            </button>
+          </div>
+          {uiState.status === 'loading' ? (
+            <p className="muted controls-feedback">Finding workout...</p>
+          ) : null}
+          {uiState.status === 'error' && uiState.message ? (
+            <p className="error controls-feedback">{uiState.message}</p>
+          ) : null}
+          <p className="muted session-meta">
+            No-repeat history: {excludeHistory.length}
+          </p>
+        </div>
       </section>
     </main>
   );

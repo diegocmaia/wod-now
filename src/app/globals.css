@@ -54,6 +54,11 @@ a {
   flex: 1;
 }
 
+.page-brand {
+  grid-column: 1 / -1;
+  padding: 0.1rem 0.1rem 0.2rem;
+}
+
 .site-footer {
   width: min(1080px, 100%);
   margin: 0 auto;
@@ -74,6 +79,18 @@ a {
   box-shadow: 0 14px 28px -24px rgb(0 0 0 / 45%);
 }
 
+.controls {
+  position: relative;
+  z-index: 2;
+  order: 1;
+}
+
+.result {
+  position: relative;
+  z-index: 1;
+  order: 2;
+}
+
 .panel-kicker {
   margin: 0;
   font-size: 0.72rem;
@@ -89,6 +106,15 @@ a {
   letter-spacing: -0.02em;
   font-size: clamp(2rem, 4.5vw, 2.8rem);
   font-weight: 700;
+}
+
+.page-brand-title {
+  margin-bottom: 0.36rem;
+}
+
+.page-brand-copy {
+  max-width: 52ch;
+  margin: 0;
 }
 
 h1,
@@ -180,6 +206,8 @@ input[type="checkbox"] {
 .controls-actions {
   display: grid;
   gap: 0.5rem;
+  position: relative;
+  z-index: 3;
 }
 
 button {
@@ -192,6 +220,10 @@ button {
   background: var(--line-strong);
   color: #f6f7f8;
   font-weight: 700;
+  position: relative;
+  z-index: 4;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .button-primary:hover:enabled {
@@ -217,6 +249,46 @@ button:disabled {
 .session-meta {
   margin: 0.72rem 0 0;
   font-size: 0.9rem;
+}
+
+.controls-feedback {
+  margin: 0.62rem 0 0;
+}
+
+.result-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.42rem;
+}
+
+.result-header-row .panel-kicker {
+  margin: 0;
+}
+
+.result-filter-button,
+.controls-toggle,
+.controls-redraw {
+  width: auto;
+  min-height: 2.1rem;
+  padding: 0.36rem 0.72rem;
+  font-size: 0.84rem;
+}
+
+.controls-summary {
+  margin: 0.46rem 0 0;
+  font-size: 0.87rem;
+}
+
+.controls-top-actions {
+  margin-top: 0.62rem;
+  display: flex;
+  gap: 0.42rem;
+}
+
+.controls-body.controls-body-collapsed {
+  display: block;
 }
 
 .result > .muted {
@@ -344,6 +416,23 @@ code {
 }
 
 @media (max-width: 767px) {
+  .page.page-has-result .result {
+    order: 1;
+  }
+
+  .page.page-has-result .controls {
+    order: 2;
+  }
+
+  .controls-top-actions .controls-redraw,
+  .controls-top-actions .controls-toggle {
+    flex: 1;
+  }
+
+  .controls-body.controls-body-collapsed {
+    display: none;
+  }
+
   .controls,
   .result {
     border-radius: 14px;
