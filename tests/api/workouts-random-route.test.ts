@@ -108,6 +108,37 @@ describe('GET /api/workouts/random', () => {
     });
   });
 
+  it('normalizes equipment aliases before db filtering', async () => {
+    findRandom.mockResolvedValue({
+      id: 'w-db',
+      title: 'DB Chipper',
+      timeCapSeconds: 600,
+      equipment: JSON.stringify(['dumbbell']),
+      data: JSON.stringify({ rounds: [1] }),
+      isPublished: true
+    });
+
+    const response = await GET(
+      new Request('https://example.com/api/workouts/random?equipment=dumbbells')
+    );
+
+    expect(response.status).toBe(200);
+    expect(findRandom).toHaveBeenCalledWith({
+      where: {
+        isPublished: true,
+        equipmentAll: ['dumbbell']
+      },
+      select: {
+        id: true,
+        title: true,
+        timeCapSeconds: true,
+        equipment: true,
+        data: true,
+        isPublished: true
+      }
+    });
+  });
+
   it('returns cached value without additional db query for equivalent filter keys', async () => {
     findRandom.mockResolvedValue({
       id: 'w-cache',
@@ -123,6 +154,28 @@ describe('GET /api/workouts/random', () => {
     );
     const second = await GET(
       new Request('https://example.com/api/workouts/random?equipment=pull-up%20bar,barbell')
+    );
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(findRandom).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns cached value for canonical and alias equipment filters', async () => {
+    findRandom.mockResolvedValue({
+      id: 'w-cache-db',
+      title: 'DB Cache',
+      timeCapSeconds: 300,
+      equipment: JSON.stringify(['dumbbell']),
+      data: JSON.stringify({ rounds: [5] }),
+      isPublished: true
+    });
+
+    const first = await GET(
+      new Request('https://example.com/api/workouts/random?equipment=dumbbells')
+    );
+    const second = await GET(
+      new Request('https://example.com/api/workouts/random?equipment=dumbbell')
     );
 
     expect(first.status).toBe(200);

@@ -22,6 +22,12 @@ type RandomWorkoutQuery = {
   exclude: string[];
 };
 
+const equipmentAliases: Record<string, string> = {
+  dumbbells: 'dumbbell',
+  'dumb bell': 'dumbbell',
+  'dumb bells': 'dumbbell'
+};
+
 const parsePositiveInt = (rawValue: string | undefined, fallback: number): number => {
   if (!rawValue) {
     return fallback;
@@ -52,13 +58,23 @@ const parseCsvValues = (searchParams: URLSearchParams, key: string): string[] =>
     .filter((value) => value.length > 0);
 };
 
+const normalizeEquipmentFilterValue = (value: string): string => {
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/_+/g, ' ')
+    .replace(/\s+/g, ' ');
+
+  return equipmentAliases[normalized] ?? normalized;
+};
+
 const parseQuery = (request: Request): RandomWorkoutQuery | { error: string } => {
   const url = new URL(request.url);
   const rawTimeCapMax = url.searchParams.get('timeCapMax');
 
   if (rawTimeCapMax === null) {
     return {
-      equipment: parseCsvValues(url.searchParams, 'equipment'),
+      equipment: parseCsvValues(url.searchParams, 'equipment').map(normalizeEquipmentFilterValue),
       exclude: parseCsvValues(url.searchParams, 'exclude')
     };
   }
@@ -70,7 +86,7 @@ const parseQuery = (request: Request): RandomWorkoutQuery | { error: string } =>
 
   return {
     timeCapMax,
-    equipment: parseCsvValues(url.searchParams, 'equipment'),
+    equipment: parseCsvValues(url.searchParams, 'equipment').map(normalizeEquipmentFilterValue),
     exclude: parseCsvValues(url.searchParams, 'exclude')
   };
 };
